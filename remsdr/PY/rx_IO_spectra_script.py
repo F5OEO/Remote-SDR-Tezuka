@@ -5,76 +5,55 @@
 import socket
 import asyncio
 import time
+import websockets
+import numpy as np
 
- 
 # get local machine name
 host = 'localhost'                           
 
 
 port_spectre_web = 8002
-port_spectre_GR = 9002
+port_spectre_GR = 19002
 Connected_to_GR = False
 byte_array = bytearray(65536) #16*4096
 packet_number=0
 nb_erreur=0
 
-def Connection_GR():
-# connection to hostname on the port.
-    global Connected_to_GR
-    global GR_spectre
-    global nb_erreur
-    try :
-        GR_spectre = socket.socket(socket.AF_INET,  socket.SOCK_STREAM) # create a socket object
-        GR_spectre.connect((host, port_spectre_GR)) 
-        Connected_to_GR = True
-        print("Connecté à GR spectre")
-        nb_erreur=0
-    except :
-        print("Erreur connection à GR spectre")
-        time.sleep(1)
-        Connected_to_GR = False
-        
-print("Bridge to pass Spectra from GNU Radio to  WEB server and client")
+     
 
-
-# Reception 4096 bytes du spectre 
-async def read_GR_Spectre():
-    global byte_array
-    global packet_number
-    global nb_erreur
-    global Connected_to_GR
-    global GR_spectre
+async def read_maia_Spectre():
+    global byte_array, packet_number, nb_erreur, Connected_to_GR
+    uri = f"ws://127.0.0.1:8000/waterfall"
     while True:
-# DATA from  GNU-RADIO
-        await asyncio.sleep(0.02)
-        nb_erreur +=1
-        
-        if nb_erreur>100 :
+        try:
+            async with websockets.connect(uri) as websocket:
+                print("Connected to GR spectre via WebSocket")
+                Connected_to_GR = True
+                nb_erreur = 0
+                while True:
+                    raw = await websocket.recv()   # receive one frame
+                    spec = np.frombuffer(raw, dtype=np.float32)
+                    # Convert to dB scale (power spectrum)
+                    spec_db = (10 * np.log10(spec + 1e-12)).astype(np.int8)
+
+                    print("Specdb:",len(spec_db))
+                    if len(spec_db) == 4096:
+                        adr = packet_number * 4096
+                        for i in range(4096):
+                            if i in (2048, 2049):
+                                byte_array[adr] = 255
+                            else:
+                                byte_array[adr] = spec_db[i]
+                            adr += 1
+                        packet_number = (packet_number + 1) % 16
+                        nb_erreur = 0
+                    else:
+                        print("Unexpected packet size:", len(msg_spectre))
+        except Exception as e:
+            print("WebSocket error:", e)
             Connected_to_GR = False
-            nb_erreur = 0
-        if Connected_to_GR :       
-            try:
-                msg_spectre = GR_spectre.recv(4096)
-                adr=packet_number*4096
-                if len(msg_spectre)==4096 : #2048 beams * 2 bytes
-                    for i in range(4096):
-                        if i==2048 or i==2049 :
-                            byte_array[adr]=255 #Synchro at the left of spectra. Signal non relevant
-                        else :
-                            byte_array[adr]=msg_spectre[i]
-                        adr +=1
-                    
-                    packet_number=(packet_number+1)%16
-                   
-                    nb_erreur = 0
-                    
-                
-            except socket.error:
-                nb_erreur +=1
-                print("no data")
-        else :    
-            Connection_GR()
-            
+            nb_erreur += 1
+            await asyncio.sleep(0.1)
       
 
 async def handle_Local_Server(reader, writer):   
@@ -128,6 +107,6 @@ async def main_Local_Server():
 
 loop = asyncio.get_event_loop()
 
-loop.run_until_complete(asyncio.gather(main_Local_Server(),read_GR_Spectre()))
+loop.run_until_complete(asyncio.gather(main_Local_Server(),read_maia_Spectre()))
 loop.run_forever()
 loop.close()
