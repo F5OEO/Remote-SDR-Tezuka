@@ -835,7 +835,7 @@ blocks:
     alias: ''
     comment: ''
     mode: '2'
-    port: '9002'
+    port: '19002'
     type: short
     vlen: '2048'
   states:
@@ -853,7 +853,7 @@ blocks:
     alias: ''
     comment: ''
     mode: '2'
-    port: '9001'
+    port: '19001'
     type: short
     vlen: '1'
   states:

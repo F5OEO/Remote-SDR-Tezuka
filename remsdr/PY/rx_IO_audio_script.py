@@ -14,7 +14,7 @@ host = '127.0.0.1'
 
 
 port_audio_web = 8001
-port_audio_GR = 9001
+port_audio_GR = 19001
 Connected_to_GR = False
 byte_array = bytearray(60000) #3s of signal
 packet_number=0	
