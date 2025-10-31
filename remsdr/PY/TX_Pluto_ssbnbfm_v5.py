@@ -64,7 +64,7 @@ class TX_Pluto_ssbnbfm_v5(gr.top_block):
         tune_args = ['']
         settings = ['']
 
-        self.soapy_plutosdr_sink_0 = soapy.sink(dev, "fc32", 1, '',
+        self.soapy_plutosdr_sink_0 = soapy.sink(dev, "fc32", 1, 'uri:ip=127.0.0.1',
                                   stream_args, tune_args, settings)
         self.soapy_plutosdr_sink_0.set_sample_rate(0, samp_rate)
         self.soapy_plutosdr_sink_0.set_bandwidth(0, 200000)

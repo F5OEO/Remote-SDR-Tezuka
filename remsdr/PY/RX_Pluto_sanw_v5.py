@@ -77,9 +77,9 @@ class RX_Pluto_sanw_v5(gr.top_block):
         self.network_tcp_sink_0_0 = network.tcp_sink(gr.sizeof_short, 1, '127.0.0.1', 19001,2)
         self.iio_device_source_0 = iio.device_source('local:', 'cf-ad9361-lpc', ['voltage0','voltage1'], 'ad9361-phy', [], 32768, 1 - 1)
         self.iio_device_source_0.set_len_tag_key('packet_len')
-        self.freq_xlating_fir_filter_xxx_0_1 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_AM, Ffine, samp_rate/6)
-        self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(40000*6)), xlate_filter_taps_NBFM, Ffine, samp_rate/6)
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_SSB, Ffine-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200, samp_rate/6)
+        self.freq_xlating_fir_filter_xxx_0_1 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_AM, 0, samp_rate/6)
+        self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(40000*6)), xlate_filter_taps_NBFM, 0, samp_rate/6)
+        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_SSB, 0-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200, samp_rate/6)
         self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, frequency_nco=Ffine, samplerate=samp_rate, decim=6, url=maia_url)
         self.blocks_short_to_float_1 = blocks.short_to_float(1, 1)
         self.blocks_short_to_float_0 = blocks.short_to_float(1, 1)
@@ -198,7 +198,7 @@ class RX_Pluto_sanw_v5(gr.top_block):
         self.Largeur_filtre_SSB = Largeur_filtre_SSB
         self.set_xlate_filter_taps_SSB(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_SSB/2, 760))
         self.analog_sig_source_x_0.set_frequency(self.Largeur_filtre_SSB/2+100)
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.Ffine-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
+        self.freq_xlating_fir_filter_xxx_0.set_center_freq(0-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
 
     def get_Largeur_filtre_NBFM(self):
         return self.Largeur_filtre_NBFM
@@ -277,7 +277,7 @@ class RX_Pluto_sanw_v5(gr.top_block):
     def set_LSB_USB(self, LSB_USB):
         self.LSB_USB = LSB_USB
         self.blocks_multiply_const_vxx_0.set_k(1-2*self.LSB_USB)
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.Ffine-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
+        self.freq_xlating_fir_filter_xxx_0.set_center_freq(0-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
 
     def get_G3(self):
         return self.G3
@@ -303,6 +303,7 @@ class RX_Pluto_sanw_v5(gr.top_block):
     def set_Fsdr(self, Fsdr):
         self.Fsdr = Fsdr
         self.epy_block_1.frequency = self.Fsdr
+        self.epy_block_1.set_frequency (self.Fsdr)
 
     def get_Ffine(self):
         return self.Ffine
@@ -310,10 +311,7 @@ class RX_Pluto_sanw_v5(gr.top_block):
     def set_Ffine(self, Ffine):
         self.Ffine = Ffine
         self.epy_block_1.frequency_nco = self.Ffine
-        self.freq_xlating_fir_filter_xxx_0.set_center_freq(self.Ffine-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
-        self.freq_xlating_fir_filter_xxx_0_0.set_center_freq(self.Ffine)
-        self.freq_xlating_fir_filter_xxx_0_1.set_center_freq(self.Ffine)
-
+        self.epy_block_1.set_frequency_nco(self.Ffine)
 
 
 def argument_parser():
