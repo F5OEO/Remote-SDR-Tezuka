@@ -22,7 +22,7 @@ function RXlaunchGR(CPUshort, SDRrx) {
 			var sn=SDRrx.substr(6); //Serial Number
 		}
 		
-	console.log("LAPAJ:!!!!! ",rx_sdr_name);
+	console.log("SDR NAME: ",rx_sdr_name);
         switch (rx_sdr_name) {
 			
         case "hackrf":
@@ -53,14 +53,11 @@ function RXlaunchGR(CPUshort, SDRrx) {
             }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
         case "pluto":
-            rxSampRate = 900000; //Values for Opizero 2
-			 if (CPUshort == "RPI4")
-                rxSampRate = 1200000; 
-            //If we change this value, change also the Decim_LP in the process to size the buffer to the max
+            rxSampRate = 4000000; //Values for Tezuka
+			 //If we change this value, change also the Decim_LP in the process to size the buffer to the max
             BWmaxF = rxSampRate / 100000 / 1.2; // Ex 16= (16.666*100kHz) ; //Bandwidth max
-            rx_GR_script = cp.spawn("python3", ["/remsdr/PY/RX_Pluto_sanw_v5.py", "--SampRate=" + rxSampRate], {
-                stdio: 'ignore'
-            }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
+            rx_GR_script = cp.spawn("python3", ["/remsdr/PY/RX_Pluto_Tezuka.py", "--SampRate=" + rxSampRate], {stdio: 'ignore'}); 
+            //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
         }
 		console.log("launch",rx_sdr_name,"rxSampRate",rxSampRate);
