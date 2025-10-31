@@ -55,14 +55,15 @@ class blk(gr.basic_block):
 
     def set_samplerate(self, samplerate):
         self.samplerate = samplerate
-        client.set_sampling_frequency(self.samplerate)
-        client.set_rx_rf_bandwidth(self.samplerate)
+        self.client.set_sampling_frequency(self.samplerate)
+        self.client.set_rx_rf_bandwidth(self.samplerate)
         print("Samplerate updated:", samplerate, flush=True)
     
     def set_rxgain(self, rxgain):
            self.rxgain = rxgain
-           client.set_rx_gain_mode("Manual")
-           client.set_rx_gain(self.rxgain)
+           self.client.set_rx_gain_mode("Manual")
+           self.client.set_rx_gain(self.rxgain)
+           print("Gain updated:", samplerate, flush=True) 
 
     def set_decim(self, decim):
         self.decim = decim
@@ -74,6 +75,7 @@ class blk(gr.basic_block):
         
         self.client = MaiaPerParamClient(self.url)
         try:
+            self.set_samplerate(self.samplerate)
             self.client.set_rx_lo_frequency(self.frequency)
             self.client.put_ddc_design_params(
                 self.frequency_nco,
