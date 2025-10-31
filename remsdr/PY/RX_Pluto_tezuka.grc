@@ -1,17 +1,17 @@
 options:
   parameters:
-    author: F1ATB - BUHART
+    author: F5OEO
     catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
     comment: ''
     copyright: GNU General Public Licence v3.0
-    description: RX for Adalm-Pluto
+    description: RX for Tezuka Firmware
     gen_cmake: 'On'
     gen_linking: dynamic
     generate_options: no_gui
     hier_block_src_path: '.:'
-    id: RX_Pluto_sanw_v5
+    id: RX_Pluto_Tezuka
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -22,7 +22,7 @@ options:
     run_options: run
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Adalm-Pluto SSB AM NBFN WBFM  Receiver V5- F1ATB - APRIL 2022
+    title: TezukaRx
     window_size: ''
   states:
     bus_sink: false
@@ -699,55 +699,58 @@ blocks:
       \nclass blk(gr.basic_block):\n    \"\"\"Maia Source control block (no stream\
       \ I/O)\"\"\"\n\n    def __init__(self,\n                 frequency=1000e6,\n\
       \                 frequency_nco=0,\n                 samplerate=1.2e6,\n   \
-      \              decim=6,\n                 url=\"http://127.0.0.1:8000\"):\n\
-      \        gr.basic_block.__init__(self,\n            name='Maia Source',\n  \
-      \          in_sig=[],\n            out_sig=[]\n        )\n\n        self.url\
-      \ = url\n        self.frequency = frequency\n        self.frequency_nco = frequency_nco\n\
-      \        self.samplerate = samplerate\n        self.decim = decim\n        self.client\
-      \ = None\n        self._running = False\n\n        print(\"Init: Frequency setting\"\
-      , self.frequency, flush=True)\n        self.start()\n\n    # --- Runtime setters\
-      \ (callbacks GRC will call) ---\n    def set_frequency(self, frequency):\n \
-      \       self.frequency = frequency\n        if self.client:\n            try:\n\
-      \                self.client.set_rx_lo_frequency(frequency)\n            except\
-      \ MaiaAPIError as e:\n                print(\"Failed to set frequency:\", e,\
-      \ flush=True)\n        print(\"Frequency updated:\", frequency, flush=True)\n\
-      \n    def set_frequency_nco(self, frequency_nco):\n        self.frequency_nco\
+      \              rxgain=50,                                  \n              \
+      \   url=\"http://127.0.0.1:8000\"):\n        gr.basic_block.__init__(self,\n\
+      \            name='Maia Source',\n            in_sig=[],\n            out_sig=[]\n\
+      \        )\n\n        self.url = url\n        self.frequency = frequency\n \
+      \       self.frequency_nco = frequency_nco\n        self.samplerate = samplerate\n\
+      \        self.decim = int(samplerate/200e3)\n        self.client = None\n  \
+      \      self._running = False\n        self.rxgain = rxgain\n\n        print(\"\
+      Init: Frequency setting\", self.frequency, flush=True)\n        self.start()\n\
+      \n    # --- Runtime setters (callbacks GRC will call) ---\n    def set_frequency(self,\
+      \ frequency):\n        self.frequency = frequency\n        if self.client:\n\
+      \            try:\n                self.client.set_rx_lo_frequency(frequency)\n\
+      \            except MaiaAPIError as e:\n                print(\"Failed to set\
+      \ frequency:\", e, flush=True)\n        print(\"Frequency updated:\", frequency,\
+      \ flush=True)\n\n    def set_frequency_nco(self, frequency_nco):\n        self.frequency_nco\
       \ = frequency_nco\n        if self.client:\n            try:\n             \
       \   self.client.set_ddc_frequency(frequency_nco)\n            except MaiaAPIError\
       \ as e:\n                print(\"Failed to set NCO:\", e, flush=True)\n    \
       \    print(\"Frequency NCO updated:\", frequency_nco, flush=True)\n\n    def\
       \ set_samplerate(self, samplerate):\n        self.samplerate = samplerate\n\
-      \        print(\"Samplerate updated:\", samplerate, flush=True)\n\n    def set_decim(self,\
+      \        client.set_sampling_frequency(self.samplerate)\n        client.set_rx_rf_bandwidth(self.samplerate)\n\
+      \        print(\"Samplerate updated:\", samplerate, flush=True)\n    \n    def\
+      \ set_rxgain(self, rxgain):\n           self.rxgain = rxgain\n           client.set_rx_gain_mode(\"\
+      Manual\")\n           client.set_rx_gain(self.rxgain)\n\n    def set_decim(self,\
       \ decim):\n        self.decim = decim\n        print(\"Decimation updated:\"\
       , decim, flush=True)\n\n    # --- Lifecycle hooks ---\n    def start(self):\n\
-      \        print (\"Starting\", self.url)\n        url=\"http://127.0.0.1:8000\"\
-      \n\n        self.client = MaiaPerParamClient(url)\n        try:\n          \
-      \  self.client.set_rx_lo_frequency(self.frequency)\n            self.client.put_ddc_design_params(\n\
-      \                self.frequency_nco,\n                self.decim,\n        \
-      \        0.05, 0.01, 50, True\n            )\n        except MaiaAPIError as\
-      \ e:\n            print(\"Failed to configure Maia client:\", e, flush=True)\n\
-      \n        subprocess.run([\"busybox\", \"devmem\", \"0x790200BC\", \"32\", \"\
-      0x1\"])\n        self._running = True\n        self.thread = threading.Thread(target=self.run,\
-      \ daemon=True)\n        self.thread.start()\n        return super().start()\n\
-      \n    def run(self):\n        while self._running:\n            time.sleep(1)\n\
-      \n    def stop(self):\n        self._running = False\n        if hasattr(self,\
-      \ \"thread\") and self.thread.is_alive():\n            self.thread.join()\n\
-      \        return super().stop()\n\n"
+      \        print (\"Starting\", self.url)\n        \n        self.client = MaiaPerParamClient(self.url)\n\
+      \        try:\n            self.client.set_rx_lo_frequency(self.frequency)\n\
+      \            self.client.put_ddc_design_params(\n                self.frequency_nco,\n\
+      \                self.decim,\n                0.05, 0.01, 50, True\n       \
+      \     )\n        except MaiaAPIError as e:\n            print(\"Failed to configure\
+      \ Maia client:\", e, flush=True)\n\n        subprocess.run([\"busybox\", \"\
+      devmem\", \"0x790200BC\", \"32\", \"0x1\"])\n        self._running = True\n\
+      \        self.thread = threading.Thread(target=self.run, daemon=True)\n    \
+      \    self.thread.start()\n        return super().start()\n\n    def run(self):\n\
+      \        while self._running:\n            time.sleep(1)\n\n    def stop(self):\n\
+      \        self._running = False\n        if hasattr(self, \"thread\") and self.thread.is_alive():\n\
+      \            self.thread.join()\n        return super().stop()\n\n"
     affinity: ''
-    alias: ''
+    alias: MaiaSource
     comment: ''
-    decim: '6'
     frequency: Fsdr
     frequency_nco: Ffine
     maxoutbuf: '0'
     minoutbuf: '0'
+    rxgain: G2
     samplerate: samp_rate
     url: maia_url
   states:
     _io_cache: ('Maia Source', 'blk', [('frequency', '1000000000.0'), ('frequency_nco',
-      '0'), ('samplerate', '1200000.0'), ('decim', '6'), ('url', "'http://127.0.0.1:8000'")],
-      [], [], 'Maia Source control block (no stream I/O)', ['decim', 'frequency',
-      'frequency_nco', 'samplerate', 'url'])
+      '0'), ('samplerate', '1200000.0'), ('rxgain', '50'), ('url', "'http://127.0.0.1:8000'")],
+      [], [], 'Maia Source control block (no stream I/O)', ['frequency', 'frequency_nco',
+      'rxgain', 'samplerate', 'url'])
     bus_sink: false
     bus_source: false
     bus_structure: null
