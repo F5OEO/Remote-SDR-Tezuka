@@ -229,7 +229,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: firdes.low_pass(1, samp_rate/6, Largeur_filtre_AM/2, 1500)
+    value: firdes.low_pass(1, baseband, Largeur_filtre_AM/2, 1500)
   states:
     bus_sink: false
     bus_source: false
@@ -241,7 +241,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: firdes.low_pass(1, samp_rate/6, Largeur_filtre_NBFM/2, 2000)
+    value: firdes.low_pass(1,baseband, Largeur_filtre_NBFM/2, 2000)
   states:
     bus_sink: false
     bus_source: false
@@ -253,7 +253,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: firdes.low_pass(1, samp_rate/6, Largeur_filtre_SSB/2, 760)
+    value: firdes.low_pass(1, baseband, Largeur_filtre_SSB/2, 760)
   states:
     bus_sink: false
     bus_source: false
@@ -265,7 +265,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: firdes.low_pass(1, samp_rate, Largeur_filtre_WBFM/2, 25000)
+    value: firdes.low_pass(1, baseband, Largeur_filtre_WBFM/2, 25000)
   states:
     bus_sink: false
     bus_source: false
@@ -428,11 +428,11 @@ blocks:
   parameters:
     affinity: ''
     alias: ''
-    audio_decimation: '20'
+    audio_decimation: int(baseband/10000)
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    quad_rate: '200000'
+    quad_rate: baseband
   states:
     bus_sink: false
     bus_source: false
@@ -440,6 +440,23 @@ blocks:
     coordinate: [824, 1204.0]
     rotation: 0
     state: enabled
+- name: baseband
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: baseband
+    short_id: ''
+    type: eng_float
+    value: '200000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1144, 140.0]
+    rotation: 0
+    state: true
 - name: blocks_add_xx_0
   id: blocks_add_xx
   parameters:
@@ -699,13 +716,14 @@ blocks:
       \nclass blk(gr.basic_block):\n    \"\"\"Maia Source control block (no stream\
       \ I/O)\"\"\"\n\n    def __init__(self,\n                 frequency=1000e6,\n\
       \                 frequency_nco=0,\n                 samplerate=1.2e6,\n   \
-      \              rxgain=50,                                  \n              \
-      \   url=\"http://127.0.0.1:8000\"):\n        gr.basic_block.__init__(self,\n\
-      \            name='Maia Source',\n            in_sig=[],\n            out_sig=[]\n\
-      \        )\n\n        self.url = url\n        self.frequency = frequency\n \
-      \       self.frequency_nco = frequency_nco\n        self.samplerate = samplerate\n\
-      \        self.decim = int(samplerate/200e3)\n        self.client = None\n  \
-      \      self._running = False\n        self.rxgain = rxgain\n\n        print(\"\
+      \              rxgain=50,\n                 baseband=200000,               \
+      \                      \n                 url=\"http://127.0.0.1:8000\"):\n\
+      \        gr.basic_block.__init__(self,\n            name='Maia Source',\n  \
+      \          in_sig=[],\n            out_sig=[]\n        )\n\n        self.url\
+      \ = url\n        self.frequency = frequency\n        self.frequency_nco = frequency_nco\n\
+      \        self.samplerate = samplerate\n        self.baseband = baseband\n  \
+      \      self.decim = int(samplerate/self.baseband)\n        self.client = None\n\
+      \        self._running = False\n        self.rxgain = rxgain\n\n\n        print(\"\
       Init: Frequency setting\", self.frequency, flush=True)\n        self.start()\n\
       \n    # --- Runtime setters (callbacks GRC will call) ---\n    def set_frequency(self,\
       \ frequency):\n        self.frequency = frequency\n        if self.client:\n\
@@ -740,6 +758,7 @@ blocks:
       \        return super().stop()\n\n"
     affinity: ''
     alias: MaiaSource
+    baseband: '200000'
     comment: ''
     frequency: Fsdr
     frequency_nco: Ffine
@@ -750,9 +769,10 @@ blocks:
     url: maia_url
   states:
     _io_cache: ('Maia Source', 'blk', [('frequency', '1000000000.0'), ('frequency_nco',
-      '0'), ('samplerate', '1200000.0'), ('rxgain', '50'), ('url', "'http://127.0.0.1:8000'")],
-      [], [], 'Maia Source control block (no stream I/O)', ['frequency', 'frequency_nco',
-      'rxgain', 'samplerate', 'url'])
+      '0'), ('samplerate', '1200000.0'), ('rxgain', '50'), ('baseband', '200000'),
+      ('url', "'http://127.0.0.1:8000'")], [], [], 'Maia Source control block (no
+      stream I/O)', ['baseband', 'frequency', 'frequency_nco', 'rxgain', 'samplerate',
+      'url'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -766,10 +786,10 @@ blocks:
     alias: ''
     center_freq: 0-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200
     comment: ''
-    decim: int(samp_rate/(10000*6))
+    decim: int(baseband/10000)
     maxoutbuf: '0'
     minoutbuf: '0'
-    samp_rate: samp_rate/6
+    samp_rate: baseband
     taps: xlate_filter_taps_SSB
     type: ccc
   states:
@@ -786,10 +806,10 @@ blocks:
     alias: ''
     center_freq: '0'
     comment: ''
-    decim: int(samp_rate/(40000*6))
+    decim: int(baseband/(40000))
     maxoutbuf: '0'
     minoutbuf: '0'
-    samp_rate: samp_rate/6
+    samp_rate: baseband
     taps: xlate_filter_taps_NBFM
     type: ccc
   states:
@@ -806,10 +826,10 @@ blocks:
     alias: ''
     center_freq: '0'
     comment: ''
-    decim: int(samp_rate/(10000*6))
+    decim: int(baseband/10000)
     maxoutbuf: '0'
     minoutbuf: '0'
-    samp_rate: samp_rate/6
+    samp_rate: baseband
     taps: xlate_filter_taps_AM
     type: ccc
   states:

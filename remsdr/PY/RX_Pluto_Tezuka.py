@@ -33,28 +33,29 @@ import RX_Pluto_Tezuka_epy_block_1 as epy_block_1  # embedded python block
 
 class RX_Pluto_Tezuka(gr.top_block):
 
-    def __init__(self, SampRate=1200000, device=''):
+    def __init__(self, SampRate=1200000, baseband=200000, device=''):
         gr.top_block.__init__(self, "TezukaRx", catch_exceptions=True)
 
         ##################################################
         # Parameters
         ##################################################
         self.SampRate = SampRate
+        self.baseband = baseband
         self.device = device
 
         ##################################################
         # Variables
         ##################################################
-        self.samp_rate = samp_rate = SampRate
         self.Modulation = Modulation = 0
         self.Largeur_filtre_WBFM = Largeur_filtre_WBFM = 150000
         self.Largeur_filtre_SSB = Largeur_filtre_SSB = 3800
         self.Largeur_filtre_NBFM = Largeur_filtre_NBFM = 10000
         self.Largeur_filtre_AM = Largeur_filtre_AM = 7500
-        self.xlate_filter_taps_WBFM = xlate_filter_taps_WBFM = firdes.low_pass(1, samp_rate, Largeur_filtre_WBFM/2, 25000)
-        self.xlate_filter_taps_SSB = xlate_filter_taps_SSB = firdes.low_pass(1, samp_rate/6, Largeur_filtre_SSB/2, 760)
-        self.xlate_filter_taps_NBFM = xlate_filter_taps_NBFM = firdes.low_pass(1, samp_rate/6, Largeur_filtre_NBFM/2, 2000)
-        self.xlate_filter_taps_AM = xlate_filter_taps_AM = firdes.low_pass(1, samp_rate/6, Largeur_filtre_AM/2, 1500)
+        self.xlate_filter_taps_WBFM = xlate_filter_taps_WBFM = firdes.low_pass(1, baseband, Largeur_filtre_WBFM/2, 25000)
+        self.xlate_filter_taps_SSB = xlate_filter_taps_SSB = firdes.low_pass(1, baseband, Largeur_filtre_SSB/2, 760)
+        self.xlate_filter_taps_NBFM = xlate_filter_taps_NBFM = firdes.low_pass(1,baseband, Largeur_filtre_NBFM/2, 2000)
+        self.xlate_filter_taps_AM = xlate_filter_taps_AM = firdes.low_pass(1, baseband, Largeur_filtre_AM/2, 1500)
+        self.samp_rate = samp_rate = SampRate
         self.maia_url = maia_url = "http://127.0.0.1:8000"
         self.decim_LP = decim_LP = 27
         self.Squelch = Squelch = -80
@@ -77,10 +78,10 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.network_tcp_sink_0_0 = network.tcp_sink(gr.sizeof_short, 1, '127.0.0.1', 19001,2)
         self.iio_device_source_0 = iio.device_source('local:', 'cf-ad9361-lpc', ['voltage0','voltage1'], 'ad9361-phy', [], 32768, 1 - 1)
         self.iio_device_source_0.set_len_tag_key('packet_len')
-        self.freq_xlating_fir_filter_xxx_0_1 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_AM, 0, samp_rate/6)
-        self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(40000*6)), xlate_filter_taps_NBFM, 0, samp_rate/6)
-        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(int(samp_rate/(10000*6)), xlate_filter_taps_SSB, 0-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200, samp_rate/6)
-        self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, frequency_nco=Ffine, samplerate=samp_rate, rxgain=G2, url=maia_url)
+        self.freq_xlating_fir_filter_xxx_0_1 = filter.freq_xlating_fir_filter_ccc(int(baseband/10000), xlate_filter_taps_AM, 0, baseband)
+        self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(int(baseband/(40000)), xlate_filter_taps_NBFM, 0, baseband)
+        self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(int(baseband/10000), xlate_filter_taps_SSB, 0-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200, baseband)
+        self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, frequency_nco=Ffine, samplerate=samp_rate, rxgain=G2, baseband=200000, url=maia_url)
         self.epy_block_1.set_block_alias("MaiaSource")
         self.blocks_short_to_float_1 = blocks.short_to_float(1, 1)
         self.blocks_short_to_float_0 = blocks.short_to_float(1, 1)
@@ -98,8 +99,8 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.blocks_complex_to_float_0 = blocks.complex_to_float(1)
         self.blocks_add_xx_0 = blocks.add_vff(1)
         self.analog_wfm_rcv_0 = analog.wfm_rcv(
-        	quad_rate=200000,
-        	audio_decimation=20,
+        	quad_rate=baseband,
+        	audio_decimation=int(baseband/10000),
         )
         self.analog_simple_squelch_cc_0_1 = analog.simple_squelch_cc(Squelch, 1)
         self.analog_simple_squelch_cc_0_0 = analog.simple_squelch_cc(Squelch, 1)
@@ -160,23 +161,21 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.SampRate = SampRate
         self.set_samp_rate(self.SampRate)
 
+    def get_baseband(self):
+        return self.baseband
+
+    def set_baseband(self, baseband):
+        self.baseband = baseband
+        self.set_xlate_filter_taps_AM(firdes.low_pass(1, self.baseband, self.Largeur_filtre_AM/2, 1500))
+        self.set_xlate_filter_taps_NBFM(firdes.low_pass(1,self.baseband, self.Largeur_filtre_NBFM/2, 2000))
+        self.set_xlate_filter_taps_SSB(firdes.low_pass(1, self.baseband, self.Largeur_filtre_SSB/2, 760))
+        self.set_xlate_filter_taps_WBFM(firdes.low_pass(1, self.baseband, self.Largeur_filtre_WBFM/2, 25000))
+
     def get_device(self):
         return self.device
 
     def set_device(self, device):
         self.device = device
-
-    def get_samp_rate(self):
-        return self.samp_rate
-
-    def set_samp_rate(self, samp_rate):
-        self.samp_rate = samp_rate
-        self.set_xlate_filter_taps_AM(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_AM/2, 1500))
-        self.set_xlate_filter_taps_NBFM(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_NBFM/2, 2000))
-        self.set_xlate_filter_taps_SSB(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_SSB/2, 760))
-        self.set_xlate_filter_taps_WBFM(firdes.low_pass(1, self.samp_rate, self.Largeur_filtre_WBFM/2, 25000))
-        self.epy_block_1.samplerate = self.samp_rate
-        self.epy_block_1.set_samplerate (self.samp_rate)
 
     def get_Modulation(self):
         return self.Modulation
@@ -191,14 +190,14 @@ class RX_Pluto_Tezuka(gr.top_block):
 
     def set_Largeur_filtre_WBFM(self, Largeur_filtre_WBFM):
         self.Largeur_filtre_WBFM = Largeur_filtre_WBFM
-        self.set_xlate_filter_taps_WBFM(firdes.low_pass(1, self.samp_rate, self.Largeur_filtre_WBFM/2, 25000))
+        self.set_xlate_filter_taps_WBFM(firdes.low_pass(1, self.baseband, self.Largeur_filtre_WBFM/2, 25000))
 
     def get_Largeur_filtre_SSB(self):
         return self.Largeur_filtre_SSB
 
     def set_Largeur_filtre_SSB(self, Largeur_filtre_SSB):
         self.Largeur_filtre_SSB = Largeur_filtre_SSB
-        self.set_xlate_filter_taps_SSB(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_SSB/2, 760))
+        self.set_xlate_filter_taps_SSB(firdes.low_pass(1, self.baseband, self.Largeur_filtre_SSB/2, 760))
         self.analog_sig_source_x_0.set_frequency(self.Largeur_filtre_SSB/2+100)
         self.freq_xlating_fir_filter_xxx_0.set_center_freq(0-self.Largeur_filtre_SSB/2+self.LSB_USB*self.Largeur_filtre_SSB-100+self.LSB_USB*200)
 
@@ -207,14 +206,14 @@ class RX_Pluto_Tezuka(gr.top_block):
 
     def set_Largeur_filtre_NBFM(self, Largeur_filtre_NBFM):
         self.Largeur_filtre_NBFM = Largeur_filtre_NBFM
-        self.set_xlate_filter_taps_NBFM(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_NBFM/2, 2000))
+        self.set_xlate_filter_taps_NBFM(firdes.low_pass(1,self.baseband, self.Largeur_filtre_NBFM/2, 2000))
 
     def get_Largeur_filtre_AM(self):
         return self.Largeur_filtre_AM
 
     def set_Largeur_filtre_AM(self, Largeur_filtre_AM):
         self.Largeur_filtre_AM = Largeur_filtre_AM
-        self.set_xlate_filter_taps_AM(firdes.low_pass(1, self.samp_rate/6, self.Largeur_filtre_AM/2, 1500))
+        self.set_xlate_filter_taps_AM(firdes.low_pass(1, self.baseband, self.Largeur_filtre_AM/2, 1500))
 
     def get_xlate_filter_taps_WBFM(self):
         return self.xlate_filter_taps_WBFM
@@ -243,6 +242,14 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.xlate_filter_taps_AM = xlate_filter_taps_AM
         self.freq_xlating_fir_filter_xxx_0_1.set_taps(self.xlate_filter_taps_AM)
 
+    def get_samp_rate(self):
+        return self.samp_rate
+
+    def set_samp_rate(self, samp_rate):
+        self.samp_rate = samp_rate
+        self.epy_block_1.samplerate = self.samp_rate
+        self.epy_block_1.set_samplerate (self.samp_rate)
+        
     def get_maia_url(self):
         return self.maia_url
 
@@ -325,6 +332,9 @@ def argument_parser():
         "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(1200000)),
         help="Set SampRate [default=%(default)r]")
     parser.add_argument(
+        "--baseband", dest="baseband", type=eng_float, default=eng_notation.num_to_str(float(200000)),
+        help="Set baseband [default=%(default)r]")
+    parser.add_argument(
         "--device", dest="device", type=str, default='',
         help="Set device [default=%(default)r]")
     return parser
@@ -333,7 +343,7 @@ def argument_parser():
 def main(top_block_cls=RX_Pluto_Tezuka, options=None):
     if options is None:
         options = argument_parser().parse_args()
-    tb = top_block_cls(SampRate=options.SampRate, device=options.device)
+    tb = top_block_cls(SampRate=options.SampRate, baseband=options.baseband, device=options.device)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()

@@ -14,7 +14,8 @@ class blk(gr.basic_block):
                  frequency=1000e6,
                  frequency_nco=0,
                  samplerate=1.2e6,
-                 rxgain=50,                                  
+                 rxgain=50,
+                 baseband=200000,                                     
                  url="http://127.0.0.1:8000"):
         gr.basic_block.__init__(self,
             name='Maia Source',
@@ -26,10 +27,12 @@ class blk(gr.basic_block):
         self.frequency = frequency
         self.frequency_nco = frequency_nco
         self.samplerate = samplerate
-        self.decim = int(samplerate/200e3)
+        self.baseband = baseband
+        self.decim = int(samplerate/self.baseband)
         self.client = None
         self._running = False
         self.rxgain = rxgain
+
 
         print("Init: Frequency setting", self.frequency, flush=True)
         self.start()
