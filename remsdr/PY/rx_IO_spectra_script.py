@@ -31,16 +31,17 @@ async def read_maia_Spectre():
                 Connected_to_GR = True
                 nb_erreur = 0
                 while True:
-                    raw = await websocket.recv()   # receive one frame
+                    raw = await websocket.recv()
                     spec = np.frombuffer(raw, dtype=np.float32)
-                    # Convert to dB scale (power spectrum)
+
+                    # Convert to dB scale
                     spec_db = (10 * np.log10(spec + 1e-12)).astype(np.int8)
 
-                    print("Specdb:",len(spec_db))
                     if len(spec_db) == 4096:
                         adr = packet_number * 4096
                         for i in range(4096):
-                            if i in (2048, 2049):
+                            # Mark sync at the START of the frame, not the center
+                            if i in (0, 1):
                                 byte_array[adr] = 255
                             else:
                                 byte_array[adr] = spec_db[i]
@@ -48,12 +49,13 @@ async def read_maia_Spectre():
                         packet_number = (packet_number + 1) % 16
                         nb_erreur = 0
                     else:
-                        print("Unexpected packet size:", len(msg_spectre))
+                        print("Unexpected packet size:", len(spec_db))
         except Exception as e:
             print("WebSocket error:", e)
             Connected_to_GR = False
             nb_erreur += 1
             await asyncio.sleep(0.1)
+
       
 
 async def handle_Local_Server(reader, writer):   
