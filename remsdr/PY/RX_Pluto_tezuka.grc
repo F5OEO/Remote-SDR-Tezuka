@@ -664,7 +664,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    scale: '1'
+    scale: 1/2048
     vlen: '1'
   states:
     bus_sink: false
@@ -681,7 +681,7 @@ blocks:
     comment: ''
     maxoutbuf: '0'
     minoutbuf: '0'
-    scale: '1'
+    scale: 1/2048
     vlen: '1'
   states:
     bus_sink: false

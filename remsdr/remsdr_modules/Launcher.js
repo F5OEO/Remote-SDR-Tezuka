@@ -53,7 +53,7 @@ function RXlaunchGR(CPUshort, SDRrx) {
             }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
         case "pluto":
-            rxSampRate = 4000000; //Values for Tezuka
+            rxSampRate = 1200000; //Values for Tezuka
 			 //If we change this value, change also the Decim_LP in the process to size the buffer to the max
             BWmaxF = rxSampRate / 100000 / 1.2; // Ex 16= (16.666*100kHz) ; //Bandwidth max
             rx_GR_script = cp.spawn("python3", ["/remsdr/PY/RX_Pluto_Tezuka.py", "--SampRate=" + rxSampRate], {stdio: 'ignore'}); 
@@ -86,10 +86,8 @@ function TXlaunchGR(CPUshort, SDRtx) {
             }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
         case "pluto":
-            txSampRate = 900000; //Values for Opizero 2   and RPI4. Must be eual with RX Sample Rate
-			if (CPUshort == "RPI4")
-                txSampRate = 1200000; 
-            tx_GR_script = cp.spawn("python3", ["/remsdr/PY/TX_Pluto_ssbnbfm_v5.py", "--SampRate=" + txSampRate], {
+            txSampRate = 1200000; 
+            tx_GR_script = cp.spawn("python3", ["/remsdr/PY/TX_Pluto_tezuka.py", "--SampRate=" + txSampRate], {
                 stdio: 'ignore'
             }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
