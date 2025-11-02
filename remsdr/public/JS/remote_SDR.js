@@ -1326,7 +1326,7 @@ function TXsocketDisConnected() {
 
 function Init_Page_SDR() {
     console.log(Date.now() - T0_remsdr, "Init_Page_SDR()");
-    var V = "Remote SDR V" + Version + "<br><a href='https://f1atb.fr' target='_blank'>F1ATB</a> ";
+    var V = "Remote SDR Tezuka V" + Version + "<br><a href='https://github.com/F5OEO/Remote-SDR-Tezuka' target='_blank'>F5OEO</a> ";
     $("#f1atb").html(V);
     $("#MyPseudo").html(User.pseudo);
     //Wait for Init Socket end
