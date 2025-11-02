@@ -1,18 +1,34 @@
-const cp = require('child_process');
-var rx_IO_spectra_script = cp.spawn("python3", ["/remsdr/PY/rx_IO_spectra_script.py"], {
-    stdio: 'ignore'
-});
-var rx_IO_audio_script = cp.spawn("python3", ["/remsdr/PY/rx_IO_audio_script.py"], {
-    stdio: 'ignore'
-});
+
 var rx_GR_script = null;
 var tx_GR_script = null;
 var tx_SA818_script = null;
 var rx_sdr_name = null;
 var tx_sdr_name = null;
+var spectra_launch=null;
 var rxSampRate = 0;
 var txSampRate = 0;
 var BWmaxF = 16.6666; //16.6*100kHz
+var rx_IO_spectra_script = null;
+var rx_IO_audio_script = null;
+
+const cp = require('child_process');
+
+function SpectrumandAudioLaunch()
+{
+    if (spectra_launch == null) 
+    {    
+        console.log("Launch Spectra: ");
+        rx_IO_spectra_script = cp.spawn("python3", ["/remsdr/PY/rx_IO_spectra_script.py"], {
+            stdio: 'ignore'
+        });
+        rx_IO_audio_script = cp.spawn("python3", ["/remsdr/PY/rx_IO_audio_script.py"], {
+            stdio: 'ignore'
+        });
+        spectra_launch="launched";
+    }
+}
+
+
 function RXlaunchGR(CPUshort, SDRrx) {
 	if(rx_sdr_name!=null && SDRrx.indexOf(rx_sdr_name)<0) killer(); //SDR changed
     if (rx_GR_script == null) {
@@ -114,8 +130,27 @@ function killer() {
     tx_GR_script = null;
 	tx_sdr_name=null;
 	tx_SA818_script=null;
+    /* FixMe : spectra and audio are not killed at exit
+    if (rx_IO_audio_script != null)
+        {
+            console.log("Kill audio")
+            rx_IO_audio_script.kill();
+            spectra_launch=null;
+        }
+        
+    if (rx_IO_spectra_script != null)
+        {
+            console.log("Kill spectra")
+         rx_IO_spectra_script.kill();
+         spectra_launch=null;
+        }
+    */
+   
+
+
 }
 module.exports = {
+    SpectrumandAudioLaunch,
     RXlaunchGR,
     TXlaunchGR,
     killer

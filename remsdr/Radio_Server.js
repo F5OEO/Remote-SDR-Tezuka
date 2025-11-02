@@ -107,6 +107,7 @@ app.get('/Version', cors(), function (req, res) {
 app.get('/info_CPU', cors(), function (req, res) {
     res.send(JSON.stringify(CPU.LastInfoCPU()));
 });
+Launcher.SpectrumandAudioLaunch();
 app.get('/RXspectra', cors(), function (req, res) {
     res.writeHead(200, {
         'Content-Type': 'multipart/octet-stream',
@@ -178,6 +179,7 @@ function ServersReceived(socket) {
             AccesKeyF = fs.readFileSync('/remsdr/AccessKey.txt', 'utf8');
         } catch (e) {}
         AccesKeyF = AccesKeyF.trim();
+       
         if (arg.ToLaunch == "RX") {
             if (arg.RXidx >= 0 && arg.AccessKey == AccesKeyF) { //Force Pilot Prioritary
                 Users.list.push({
