@@ -52,7 +52,7 @@ var Oscil_state = 0;
 
 function ToggleOscil() {
     Oscil_state = (Oscil_state + 1) % 2;
-    Oscil_Pin.write(Oscil_state);
+    //Oscil_Pin.write(Oscil_state);
 }
 var Oscil_interval;
 function ToggleOscil_10s() {
@@ -61,7 +61,7 @@ function ToggleOscil_10s() {
 }
 function Oscil_Clear() {
     clearInterval(Oscil_interval);
-    Oscil_Pin.write(0);
+    //Oscil_Pin.write(0);
 }
 //
 // GPIO setActive
