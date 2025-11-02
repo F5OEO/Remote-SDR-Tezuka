@@ -747,15 +747,15 @@ blocks:
       \        try:\n            self.set_samplerate(self.samplerate)\n          \
       \  self.client.set_rx_lo_frequency(self.frequency)\n            self.client.put_ddc_design_params(\n\
       \                self.frequency_nco,\n                self.decim,\n        \
-      \        0.05, 0.01, 50, True\n            )\n        except MaiaAPIError as\
-      \ e:\n            print(\"Failed to configure Maia client:\", e, flush=True)\n\
-      \n        subprocess.run([\"busybox\", \"devmem\", \"0x790200BC\", \"32\", \"\
-      0x1\"])\n        self._running = True\n        self.thread = threading.Thread(target=self.run,\
-      \ daemon=True)\n        self.thread.start()\n        return super().start()\n\
-      \n    def run(self):\n        while self._running:\n            time.sleep(1)\n\
-      \n    def stop(self):\n        self._running = False\n        if hasattr(self,\
-      \ \"thread\") and self.thread.is_alive():\n            self.thread.join()\n\
-      \        return super().stop()\n\n"
+      \        0.05, 0.01, 50, True\n            )\n            self.client.set_spectrometer_sampling_frequency(10)\n\
+      \        except MaiaAPIError as e:\n            print(\"Failed to configure\
+      \ Maia client:\", e, flush=True)\n\n        subprocess.run([\"busybox\", \"\
+      devmem\", \"0x790200BC\", \"32\", \"0x1\"])\n        self._running = True\n\
+      \        self.thread = threading.Thread(target=self.run, daemon=True)\n    \
+      \    self.thread.start()\n        return super().start()\n\n    def run(self):\n\
+      \        while self._running:\n            time.sleep(1)\n\n    def stop(self):\n\
+      \        self._running = False\n        if hasattr(self, \"thread\") and self.thread.is_alive():\n\
+      \            self.thread.join()\n        return super().stop()\n\n"
     affinity: ''
     alias: MaiaSource
     baseband: '200000'

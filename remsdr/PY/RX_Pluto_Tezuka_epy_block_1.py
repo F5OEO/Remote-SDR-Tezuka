@@ -85,6 +85,7 @@ class blk(gr.basic_block):
                 self.decim,
                 0.05, 0.01, 50, True
             )
+            self.client.set_spectrometer_sampling_frequency(10)
         except MaiaAPIError as e:
             print("Failed to configure Maia client:", e, flush=True)
 
