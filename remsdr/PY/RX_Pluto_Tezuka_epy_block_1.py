@@ -81,7 +81,7 @@ class blk(gr.basic_block):
             self.set_samplerate(self.samplerate)
             self.client.set_rx_lo_frequency(self.frequency)
             self.client.put_ddc_design_params(
-                self.frequency_nco,
+                0,
                 self.decim,
                 0.05, 0.01, 50, True
             )
