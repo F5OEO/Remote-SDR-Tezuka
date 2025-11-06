@@ -73,14 +73,7 @@ class blk(gr.basic_block):
     def start(self):
         print ("Starting", self.url)
         
-        self.client = MaiaPerParamClient(self.url)
-        try:
-            self.set_samplerate(self.samplerate)
-            self.client.set_tx_lo_frequency(self.frequency)
-
-            
-        except MaiaAPIError as e:
-            print("Failed to configure Maia client:", e, flush=True)
+        
         # Force Interpolator x8
         subprocess.run(["busybox", "devmem", "0x790240BC", "32", "0x1"])
         self._running = True

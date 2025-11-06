@@ -148,12 +148,12 @@ ioS.on("connection", (socket) => {
 //Clients xmlRpc
 var RXclientRpc = xmlrpc.createClient({
     host: 'localhost',
-    port: 9003,
+    port: 19003,
     path: '/'
 })
 var TXclientRpc = xmlrpc.createClient({
     host: 'localhost',
-    port: 9004,
+    port: 19004,
     path: '/'
 })
 //Init Gpredict
@@ -401,7 +401,7 @@ function ServersReceived(socket) {
                 TXclientRpc.methodCall('set_G1', [TX.G1], function () {});
                 TXclientRpc.methodCall('set_G2', [TX.G2], function () {});
             } 
-			
+            			
             if (SDRtx == "SA818")
                 TXclientRpc.methodCall('set_CTCSS', [TX.CTCSS], function () {});
 			
@@ -421,7 +421,7 @@ function ServersReceived(socket) {
             Users.TX_On = true;
         }
         Users.lastTX_Audio = T;
-        clientTX.send(data, 9005); //Array of 256 bytes via UDP
+        clientTX.send(data, 19005); //Array of 256 bytes via UDP
         CPU.ToggleOscil();
     });
     socket.on("CallTX", (data, callback) => { //Data to client High Rate

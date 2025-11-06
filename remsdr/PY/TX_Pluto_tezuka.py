@@ -33,7 +33,7 @@ import TX_Pluto_tezuka_epy_block_1 as epy_block_1  # embedded python block
 
 class TX_Pluto_tezuka(gr.top_block):
 
-    def __init__(self, SampRate=2400000, baseband=10000, device=''):
+    def __init__(self, SampRate=1200000, baseband=10000, device=''):
         gr.top_block.__init__(self, "SSB NBFM Transmitter", catch_exceptions=True)
 
         ##################################################
@@ -50,51 +50,54 @@ class TX_Pluto_tezuka(gr.top_block):
         self.maia_url = maia_url = "http://127.0.0.1:8000"
         self.LNUC = LNUC = 0
         self.G2 = G2 = 0
-        self.G1 = G1 = 89
+        self.G1 = G1 = 70
         self.Fsdr = Fsdr = 432100000
 
         ##################################################
         # Blocks
         ##################################################
-        self.xmlrpc_server_0 = SimpleXMLRPCServer(('localhost', 9004), allow_none=True)
+        self.xmlrpc_server_0 = SimpleXMLRPCServer(('localhost', 19004), allow_none=True)
         self.xmlrpc_server_0.register_instance(self)
         self.xmlrpc_server_0_thread = threading.Thread(target=self.xmlrpc_server_0.serve_forever)
         self.xmlrpc_server_0_thread.daemon = True
         self.xmlrpc_server_0_thread.start()
         self.rational_resampler_xxx_1_1 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*4)),
+                interpolation=int(samp_rate/(baseband*8)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
         self.rational_resampler_xxx_1_0 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*2*4)),
+                interpolation=int(samp_rate/(baseband*8*8)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
         self.rational_resampler_xxx_1 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*4)),
+                interpolation=int(samp_rate/(baseband*8)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
-        self.network_udp_source_0 = network.udp_source(gr.sizeof_short, 1, 9005, 0, 128, False, False, False)
+        self.network_udp_source_0 = network.udp_source(gr.sizeof_short, 1, 19005, 0, 128, False, False, False)
         self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('local:' if 'local:' else iio.get_pluto_uri(), [True, True], 32000, False)
         self.iio_pluto_sink_0.set_len_tag_key('')
         self.iio_pluto_sink_0.set_bandwidth(int(samp_rate))
         self.iio_pluto_sink_0.set_frequency(Fsdr)
         self.iio_pluto_sink_0.set_samplerate(int(samp_rate))
-        self.iio_pluto_sink_0.set_attenuation(0, 2)
+        self.iio_pluto_sink_0.set_attenuation(0, 0)
         self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
+        self.iio_attr_sink_0 = iio.attr_sink('local:', 'ad9361-phy', 'voltage0', 0, True)
         self.hilbert_fc_0 = filter.hilbert_fc(64, window.WIN_HAMMING, 6.76)
         self.hilbert_fc_0.set_min_output_buffer(10)
         self.hilbert_fc_0.set_max_output_buffer(10)
         self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, samplerate=samp_rate, txgain=G1, baseband=baseband, url=maia_url)
         self.epy_block_1.set_block_alias("MaiaTX")
+        self.blocks_var_to_msg_0 = blocks.var_to_msg_pair('hardwaregain')
         self.blocks_short_to_float_0 = blocks.short_to_float(1, 32767)
         self.blocks_selector_1 = blocks.selector(gr.sizeof_gr_complex*1,abs(LNUC),0)
         self.blocks_selector_1.set_enabled(True)
         self.blocks_selector_0 = blocks.selector(gr.sizeof_float*1,0,abs(LNUC))
         self.blocks_selector_0.set_enabled(True)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(LNUC)
+        self.blocks_message_debug_0 = blocks.message_debug(True)
         self.blocks_float_to_complex_0_0 = blocks.float_to_complex(1)
         self.blocks_float_to_complex_0 = blocks.float_to_complex(1)
         self.blocks_complex_to_float_0 = blocks.complex_to_float(1)
@@ -120,7 +123,7 @@ class TX_Pluto_tezuka(gr.top_block):
                 6.76))
         self.analog_nbfm_tx_0 = analog.nbfm_tx(
         	audio_rate=baseband,
-        	quad_rate=int(baseband*2),
+        	quad_rate=int(baseband*8),
         	tau=75e-6,
         	max_dev=5e3,
         	fh=-1.0,
@@ -131,6 +134,8 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         # Connections
         ##################################################
+        self.msg_connect((self.blocks_var_to_msg_0, 'msgout'), (self.blocks_message_debug_0, 'print'))
+        self.msg_connect((self.blocks_var_to_msg_0, 'msgout'), (self.iio_attr_sink_0, 'attr'))
         self.connect((self.analog_const_source_x_1, 0), (self.blocks_float_to_complex_0_0, 1))
         self.connect((self.analog_nbfm_tx_0, 0), (self.rational_resampler_xxx_1_0, 0))
         self.connect((self.band_pass_filter_0, 0), (self.rational_resampler_xxx_1, 0))
@@ -211,6 +216,7 @@ class TX_Pluto_tezuka(gr.top_block):
 
     def set_G1(self, G1):
         self.G1 = G1
+        self.blocks_var_to_msg_0.variable_changed(str(-float(89-self.G1)))
         self.epy_block_1.txgain = self.G1
 
     def get_Fsdr(self):
@@ -227,7 +233,7 @@ def argument_parser():
     description = 'TX SSB NBFM tezuka'
     parser = ArgumentParser(description=description)
     parser.add_argument(
-        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(2400000)),
+        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(1200000)),
         help="Set SampRate [default=%(default)r]")
     parser.add_argument(
         "--baseband", dest="baseband", type=eng_float, default=eng_notation.num_to_str(float(10000)),

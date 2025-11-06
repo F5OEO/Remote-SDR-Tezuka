@@ -49,7 +49,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '89'
+    value: '70'
   states:
     bus_sink: false
     bus_source: false
@@ -114,7 +114,7 @@ blocks:
     label: ''
     short_id: ''
     type: eng_float
-    value: '2400000'
+    value: '1200000'
   states:
     bus_sink: false
     bus_source: false
@@ -150,7 +150,7 @@ blocks:
     max_dev: 5e3
     maxoutbuf: '0'
     minoutbuf: '0'
-    quad_rate: int(baseband*2)
+    quad_rate: int(baseband*8)
     tau: 75e-6
   states:
     bus_sink: false
@@ -274,6 +274,20 @@ blocks:
     coordinate: [552, 368.0]
     rotation: 0
     state: enabled
+- name: blocks_message_debug_0
+  id: blocks_message_debug
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    en_uvec: 'True'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1328, 264.0]
+    rotation: 0
+    state: enabled
 - name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
   parameters:
@@ -355,6 +369,23 @@ blocks:
     coordinate: [312, 188.0]
     rotation: 0
     state: enabled
+- name: blocks_var_to_msg_0
+  id: blocks_var_to_msg
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    msgname: hardwaregain
+    target: str(-float(89-G1))
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1104, 596.0]
+    rotation: 0
+    state: true
 - name: device
   id: parameter
   parameters:
@@ -405,11 +436,7 @@ blocks:
       \ set_txgain(self, txgain):\n           self.txgain = txgain\n\n           self.client.set_tx_gain(self.txgain)\n\
       \           print(\"TXGain updated:\", self.txgain, flush=True) \n\n    \n \
       \   # --- Lifecycle hooks ---\n    def start(self):\n        print (\"Starting\"\
-      , self.url)\n        \n        self.client = MaiaPerParamClient(self.url)\n\
-      \        try:\n            self.set_samplerate(self.samplerate)\n          \
-      \  self.client.set_tx_lo_frequency(self.frequency)\n\n            \n       \
-      \ except MaiaAPIError as e:\n            print(\"Failed to configure Maia client:\"\
-      , e, flush=True)\n        # Force Interpolator x8\n        subprocess.run([\"\
+      , self.url)\n        \n        \n        # Force Interpolator x8\n        subprocess.run([\"\
       busybox\", \"devmem\", \"0x790240BC\", \"32\", \"0x1\"])\n        self._running\
       \ = True\n        self.thread = threading.Thread(target=self.run, daemon=True)\n\
       \        self.thread.start()\n        return super().start()\n\n    def run(self):\n\
@@ -455,12 +482,30 @@ blocks:
     coordinate: [88, 516.0]
     rotation: 0
     state: enabled
+- name: iio_attr_sink_0
+  id: iio_attr_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    attr_type: '0'
+    channel: voltage0
+    comment: ''
+    device: ad9361-phy
+    output: 'True'
+    uri: 'local:'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1432, 140.0]
+    rotation: 0
+    state: true
 - name: iio_pluto_sink_0
   id: iio_pluto_sink
   parameters:
     affinity: ''
     alias: ''
-    attenuation1: '2'
+    attenuation1: '0'
     bandwidth: int(samp_rate)
     buffer_size: '32000'
     comment: ''
@@ -493,7 +538,7 @@ blocks:
     minoutbuf: '0'
     notify_missed: 'False'
     payloadsize: '128'
-    port: '9005'
+    port: '19005'
     src_zeros: 'False'
     type: short
     vlen: '1'
@@ -538,7 +583,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*4))
+    interp: int(samp_rate/(baseband*8))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
@@ -558,7 +603,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*2*4))
+    interp: int(samp_rate/(baseband*8*8))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
@@ -578,7 +623,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*4))
+    interp: int(samp_rate/(baseband*8))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
@@ -596,7 +641,7 @@ blocks:
     addr: localhost
     alias: ''
     comment: ''
-    port: '9004'
+    port: '19004'
   states:
     bus_sink: false
     bus_source: false
@@ -620,6 +665,8 @@ connections:
 - [blocks_selector_0, '2', blocks_float_to_complex_0_0, '0']
 - [blocks_selector_1, '0', iio_pluto_sink_0, '0']
 - [blocks_short_to_float_0, '0', blocks_selector_0, '0']
+- [blocks_var_to_msg_0, msgout, blocks_message_debug_0, print]
+- [blocks_var_to_msg_0, msgout, iio_attr_sink_0, attr]
 - [hilbert_fc_0, '0', blocks_complex_to_float_0, '0']
 - [network_udp_source_0, '0', blocks_short_to_float_0, '0']
 - [rational_resampler_xxx_1, '0', blocks_selector_1, '1']

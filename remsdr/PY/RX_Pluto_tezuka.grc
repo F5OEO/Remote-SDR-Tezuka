@@ -746,8 +746,8 @@ blocks:
       , self.url)\n        \n        self.client = MaiaPerParamClient(self.url)\n\
       \        try:\n            self.set_samplerate(self.samplerate)\n          \
       \  self.client.set_rx_lo_frequency(self.frequency)\n            self.client.put_ddc_design_params(\n\
-      \                self.frequency_nco,\n                self.decim,\n        \
-      \        0.05, 0.01, 50, True\n            )\n            self.client.set_spectrometer_sampling_frequency(10)\n\
+      \                0,\n                self.decim,\n                0.05, 0.01,\
+      \ 50, True\n            )\n            self.client.set_spectrometer_sampling_frequency(10)\n\
       \        except MaiaAPIError as e:\n            print(\"Failed to configure\
       \ Maia client:\", e, flush=True)\n\n        subprocess.run([\"busybox\", \"\
       devmem\", \"0x790200BC\", \"32\", \"0x1\"])\n        self._running = True\n\
@@ -886,7 +886,7 @@ blocks:
     addr: localhost
     alias: ''
     comment: ''
-    port: '9003'
+    port: '19003'
   states:
     bus_sink: false
     bus_source: false

@@ -70,7 +70,7 @@ class RX_Pluto_Tezuka(gr.top_block):
         ##################################################
         # Blocks
         ##################################################
-        self.xmlrpc_server_0 = SimpleXMLRPCServer(('localhost', 9003), allow_none=True)
+        self.xmlrpc_server_0 = SimpleXMLRPCServer(('localhost', 19003), allow_none=True)
         self.xmlrpc_server_0.register_instance(self)
         self.xmlrpc_server_0_thread = threading.Thread(target=self.xmlrpc_server_0.serve_forever)
         self.xmlrpc_server_0_thread.daemon = True
@@ -83,8 +83,8 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(int(baseband/10000), xlate_filter_taps_SSB, 0-Largeur_filtre_SSB/2+LSB_USB*Largeur_filtre_SSB-100+LSB_USB*200, baseband)
         self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, frequency_nco=Ffine, samplerate=samp_rate, rxgain=G2, baseband=200000, url=maia_url)
         self.epy_block_1.set_block_alias("MaiaSource")
-        self.blocks_short_to_float_1 = blocks.short_to_float(1, 1)
-        self.blocks_short_to_float_0 = blocks.short_to_float(1, 1)
+        self.blocks_short_to_float_1 = blocks.short_to_float(1, 1/2048)
+        self.blocks_short_to_float_0 = blocks.short_to_float(1, 1/2048)
         self.blocks_selector_1 = blocks.selector(gr.sizeof_float*1,ModulSelect,0)
         self.blocks_selector_1.set_enabled(True)
         self.blocks_selector_0 = blocks.selector(gr.sizeof_gr_complex*1,0,ModulSelect)
@@ -249,7 +249,7 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.samp_rate = samp_rate
         self.epy_block_1.samplerate = self.samp_rate
         self.epy_block_1.set_samplerate (self.samp_rate)
-        
+
     def get_maia_url(self):
         return self.maia_url
 
@@ -301,7 +301,6 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.G2 = G2
         self.epy_block_1.rxgain = self.G2
         self.epy_block_1.set_rxgain (self.G2)
-
     def get_G1(self):
         return self.G1
 
@@ -314,7 +313,6 @@ class RX_Pluto_Tezuka(gr.top_block):
     def set_Fsdr(self, Fsdr):
         self.Fsdr = Fsdr
         self.epy_block_1.frequency = self.Fsdr
-        self.epy_block_1.set_frequency (self.Fsdr)
 
     def get_Ffine(self):
         return self.Ffine
@@ -322,7 +320,7 @@ class RX_Pluto_Tezuka(gr.top_block):
     def set_Ffine(self, Ffine):
         self.Ffine = Ffine
         self.epy_block_1.frequency_nco = self.Ffine
-        self.epy_block_1.set_frequency_nco(self.Ffine)
+
 
 
 def argument_parser():
