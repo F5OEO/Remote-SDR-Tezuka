@@ -72,6 +72,7 @@ function RXlaunchGR(CPUshort, SDRrx) {
             rxSampRate = 1200000; //Values for Tezuka
 			 //If we change this value, change also the Decim_LP in the process to size the buffer to the max
             BWmaxF = rxSampRate / 100000 / 1.2; // Ex 16= (16.666*100kHz) ; //Bandwidth max
+            console.log("Launch Rx at : ",rxSampRate);
             rx_GR_script = cp.spawn("python3", ["/remsdr/PY/RX_Pluto_Tezuka.py", "--SampRate=" + rxSampRate], {stdio: 'ignore'}); 
             //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
             break;
@@ -103,6 +104,7 @@ function TXlaunchGR(CPUshort, SDRtx) {
             break;
         case "pluto":
             txSampRate = 1200000; 
+            console.log("Launch Tx at : ",txSampRate);
             tx_GR_script = cp.spawn("python3", ["/remsdr/PY/TX_Pluto_tezuka.py", "--SampRate=" + txSampRate], {
                 stdio: 'ignore'
             }); //stdio:Ignore to avoid IO buffer saturation which blocks parameters update
@@ -120,11 +122,17 @@ function TXlaunchGR(CPUshort, SDRtx) {
 }
 function killer() {
     if (rx_GR_script != null)
+    {
         rx_GR_script.kill();
+        console.log("Kill RX");
+    }
     rx_GR_script = null;
 	rx_sdr_name=null;
     if (tx_GR_script != null)
+    {
         tx_GR_script.kill();
+        console.log("Kill TX")
+    }
 	if (tx_SA818_script != null)
         tx_SA818_script.kill();
     tx_GR_script = null;
