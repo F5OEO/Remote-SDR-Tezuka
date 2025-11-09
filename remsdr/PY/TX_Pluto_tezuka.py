@@ -33,7 +33,7 @@ import TX_Pluto_tezuka_epy_block_1 as epy_block_1  # embedded python block
 
 class TX_Pluto_tezuka(gr.top_block):
 
-    def __init__(self, SampRate=1200000, baseband=10000, device=''):
+    def __init__(self, SampRate=1600000, baseband=10000, device=''):
         gr.top_block.__init__(self, "SSB NBFM Transmitter", catch_exceptions=True)
 
         ##################################################
@@ -67,7 +67,7 @@ class TX_Pluto_tezuka(gr.top_block):
                 taps=[],
                 fractional_bw=0)
         self.rational_resampler_xxx_1_0 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*8*8)),
+                interpolation=int(samp_rate/(baseband*5*8)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
@@ -123,7 +123,7 @@ class TX_Pluto_tezuka(gr.top_block):
                 6.76))
         self.analog_nbfm_tx_0 = analog.nbfm_tx(
         	audio_rate=baseband,
-        	quad_rate=int(baseband*8),
+        	quad_rate=int(baseband*5),
         	tau=75e-6,
         	max_dev=5e3,
         	fh=-1.0,
@@ -233,7 +233,7 @@ def argument_parser():
     description = 'TX SSB NBFM tezuka'
     parser = ArgumentParser(description=description)
     parser.add_argument(
-        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(1200000)),
+        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(1600000)),
         help="Set SampRate [default=%(default)r]")
     parser.add_argument(
         "--baseband", dest="baseband", type=eng_float, default=eng_notation.num_to_str(float(10000)),
