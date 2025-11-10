@@ -33,7 +33,7 @@ import TX_Pluto_tezuka_epy_block_1 as epy_block_1  # embedded python block
 
 class TX_Pluto_tezuka(gr.top_block):
 
-    def __init__(self, SampRate=1600000, baseband=10000, device=''):
+    def __init__(self, SampRate=6400000, baseband=10000, device='', interpol=32):
         gr.top_block.__init__(self, "SSB NBFM Transmitter", catch_exceptions=True)
 
         ##################################################
@@ -42,6 +42,7 @@ class TX_Pluto_tezuka(gr.top_block):
         self.SampRate = SampRate
         self.baseband = baseband
         self.device = device
+        self.interpol = interpol
 
         ##################################################
         # Variables
@@ -62,17 +63,17 @@ class TX_Pluto_tezuka(gr.top_block):
         self.xmlrpc_server_0_thread.daemon = True
         self.xmlrpc_server_0_thread.start()
         self.rational_resampler_xxx_1_1 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*8)),
+                interpolation=int(samp_rate/(baseband*interpol)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
         self.rational_resampler_xxx_1_0 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*5*8)),
+                interpolation=int(samp_rate/(baseband*5*interpol)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
         self.rational_resampler_xxx_1 = filter.rational_resampler_ccc(
-                interpolation=int(samp_rate/(baseband*8)),
+                interpolation=int(samp_rate/(baseband*interpol)),
                 decimation=1,
                 taps=[],
                 fractional_bw=0)
@@ -179,6 +180,12 @@ class TX_Pluto_tezuka(gr.top_block):
     def set_device(self, device):
         self.device = device
 
+    def get_interpol(self):
+        return self.interpol
+
+    def set_interpol(self, interpol):
+        self.interpol = interpol
+
     def get_samp_rate(self):
         return self.samp_rate
 
@@ -233,7 +240,7 @@ def argument_parser():
     description = 'TX SSB NBFM tezuka'
     parser = ArgumentParser(description=description)
     parser.add_argument(
-        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(1600000)),
+        "--SampRate", dest="SampRate", type=eng_float, default=eng_notation.num_to_str(float(6400000)),
         help="Set SampRate [default=%(default)r]")
     parser.add_argument(
         "--baseband", dest="baseband", type=eng_float, default=eng_notation.num_to_str(float(10000)),
@@ -241,13 +248,16 @@ def argument_parser():
     parser.add_argument(
         "--device", dest="device", type=str, default='',
         help="Set device [default=%(default)r]")
+    parser.add_argument(
+        "--interpol", dest="interpol", type=intx, default=32,
+        help="Set interpol [default=%(default)r]")
     return parser
 
 
 def main(top_block_cls=TX_Pluto_tezuka, options=None):
     if options is None:
         options = argument_parser().parse_args()
-    tb = top_block_cls(SampRate=options.SampRate, baseband=options.baseband, device=options.device)
+    tb = top_block_cls(SampRate=options.SampRate, baseband=options.baseband, device=options.device, interpol=options.interpol)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()

@@ -114,7 +114,7 @@ blocks:
     label: ''
     short_id: ''
     type: eng_float
-    value: '1600000'
+    value: '6400000'
   states:
     bus_sink: false
     bus_source: false
@@ -526,6 +526,23 @@ blocks:
     coordinate: [1376, 340.0]
     rotation: 0
     state: true
+- name: interpol
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: ''
+    short_id: ''
+    type: intx
+    value: '32'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1216, 124.0]
+    rotation: 0
+    state: true
 - name: network_udp_source_0
   id: network_udp_source
   parameters:
@@ -583,7 +600,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*8))
+    interp: int(samp_rate/(baseband*interpol))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
@@ -603,7 +620,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*5*8))
+    interp: int(samp_rate/(baseband*5*interpol))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
@@ -623,7 +640,7 @@ blocks:
     comment: ''
     decim: '1'
     fbw: '0'
-    interp: int(samp_rate/(baseband*8))
+    interp: int(samp_rate/(baseband*interpol))
     maxoutbuf: '0'
     minoutbuf: '0'
     taps: ''
