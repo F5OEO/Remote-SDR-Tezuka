@@ -2,80 +2,87 @@ import subprocess
 import numpy as np
 from gnuradio import gr
 import sys, threading, time
+import adi
 
 # Adjust your path as needed
 sys.path.append("/home/analog/maia")
 from maialib4 import MaiaPerParamClient, MaiaAPIError
 
 class blk(gr.basic_block):
-    """Maia Source control block (no stream I/O)"""
+    """Maia Destination control block (no stream I/O)"""
 
     def __init__(self,
                  frequency=1000e6,
-                 
-                 samplerate=1.2e6,
                  txgain=50,
-                 baseband=200000,                                     
-                 url="http://127.0.0.1:8000"):
+                 txon=0,
+                 rfbandwidth=200e3,
+                 ):
         gr.basic_block.__init__(self,
             name='MaiaTx',
             in_sig=[],
             out_sig=[]
         )
 
-        self.url = url
+        
         self.frequency = frequency
 
-        self.samplerate = samplerate
-        self.baseband = baseband
-        self.decim = int(samplerate/self.baseband)
         self.client = None
         self._running = False
         self.txgain = txgain
-
-
+        self.txon = txon
+        self.rfbandwidth=rfbandwidth
         print("Init: Frequency setting", self.frequency, flush=True)
+        self.sdr = None
+        self.init()
         self.start()
 
     # --- Runtime setters (callbacks GRC will call) ---
     def set_frequency(self, frequency):
         self.frequency = frequency
-        if self.client:
-            try:
-                self.client.set_tx_lo_frequency(frequency)
-            except MaiaAPIError as e:
-                print("Failed to set frequency:", e, flush=True)
+        self.sdr.tx_lo = self.frequency 
         print("Frequency updated:", frequency, flush=True)
 
-    def set_frequency_nco(self, frequency_nco):
-        self.frequency_nco = frequency_nco
-        if self.client:
-            try:
-                self.client.set_ddc_frequency(frequency_nco)
-            except MaiaAPIError as e:
-                print("Failed to set NCO:", e, flush=True)
-        print("Frequency NCO updated:", frequency_nco, flush=True)
-
-    def set_samplerate(self, samplerate):
-        self.samplerate = samplerate
-        self.client.set_sampling_frequency(self.samplerate)
-        self.client.set_tx_rf_bandwidth(self.samplerate)
-        print("Samplerate updated:", samplerate, flush=True)
-    
+   
     def set_txgain(self, txgain):
            self.txgain = txgain
-
-           self.client.set_tx_gain(self.txgain)
-           print("TXGain updated:", self.txgain, flush=True) 
-
+           hardwaregain=str(-float(89-self.txgain)) 
+           tx_chan = self.phy.find_channel("voltage0", True) 
+           tx_chan.attrs["hardwaregain"].value=hardwaregain
+           print("TXGain updated:", hardwaregain, flush=True) 
     
+    def set_txon(self, txon):
+           self.txon = txon
+           tx_chan = self.phy.find_channel("altvoltage1", True) 
+           try:
+               if txon is True:
+                    tx_chan.attrs["powerdown"].value="0"
+               else:
+                    tx_chan.attrs["powerdown"].value="1"
+           except Exception as e:
+             print("Warning: TXON:", e, flush=True)
+     
+           print("Txon updated:", self.txon, flush=True) 
+
+    def set_rfbandwidth(self, txon):
+           
+           self.sdr.tx_rf_bandwidth = self.rfbandwidth
+
     # --- Lifecycle hooks ---
+    def init(self):
+        
+        print("Starting TX:") 
+        try:
+            self.sdr=adi.ad9361(uri="local:")
+            self.ctx= self.sdr.ctx
+            self.phy=self.ctx.find_device("ad9361-phy")
+            tx_chan = self.phy.find_channel("altvoltage1", True) 
+            
+            # Force Interpolator x32
+            subprocess.run(["busybox", "devmem", "0x790240BC", "32", "0x1"])
+        except Exception as e:
+            print("Warning: SDR init failed:", e, flush=True)
+    
     def start(self):
-        print ("Starting", self.url)
-        
-        
-        # Force Interpolator x8
-        subprocess.run(["busybox", "devmem", "0x790240BC", "32", "0x1"])
         self._running = True
         self.thread = threading.Thread(target=self.run, daemon=True)
         self.thread.start()
@@ -84,6 +91,10 @@ class blk(gr.basic_block):
     def run(self):
         while self._running:
             time.sleep(1)
+            self.set_txon(self.txon)
+            self.set_txgain(self.txgain)
+            #interp=subprocess.run(["busybox", "devmem", "0x790240BC"])
+            #print("Interp ",interp)        
 
     def stop(self):
         self._running = False
@@ -91,3 +102,4 @@ class blk(gr.basic_block):
             self.thread.join()
         return super().stop()
 
+    

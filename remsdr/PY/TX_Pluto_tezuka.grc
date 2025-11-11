@@ -78,7 +78,19 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [520, 20.0]
+    coordinate: [504, 20.0]
+    rotation: 0
+    state: enabled
+- name: TX_ON
+  id: variable
+  parameters:
+    comment: ''
+    value: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [584, 28.0]
     rotation: 0
     state: enabled
 - name: maia_url
@@ -274,20 +286,6 @@ blocks:
     coordinate: [552, 368.0]
     rotation: 0
     state: enabled
-- name: blocks_message_debug_0
-  id: blocks_message_debug
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    en_uvec: 'True'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1328, 264.0]
-    rotation: 0
-    state: enabled
 - name: blocks_multiply_const_vxx_0
   id: blocks_multiply_const_vxx
   parameters:
@@ -369,23 +367,6 @@ blocks:
     coordinate: [312, 188.0]
     rotation: 0
     state: enabled
-- name: blocks_var_to_msg_0
-  id: blocks_var_to_msg
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    msgname: hardwaregain
-    target: str(-float(89-G1))
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1104, 596.0]
-    rotation: 0
-    state: true
 - name: device
   id: parameter
   parameters:
@@ -407,57 +388,61 @@ blocks:
   id: epy_block
   parameters:
     _source_code: "import subprocess\nimport numpy as np\nfrom gnuradio import gr\n\
-      import sys, threading, time\n\n# Adjust your path as needed\nsys.path.append(\"\
+      import sys, threading, time\nimport adi\n\n# Adjust your path as needed\nsys.path.append(\"\
       /home/analog/maia\")\nfrom maialib4 import MaiaPerParamClient, MaiaAPIError\n\
-      \nclass blk(gr.basic_block):\n    \"\"\"Maia Source control block (no stream\
+      \nclass blk(gr.basic_block):\n    \"\"\"Maia Destination control block (no stream\
       \ I/O)\"\"\"\n\n    def __init__(self,\n                 frequency=1000e6,\n\
-      \                 \n                 samplerate=1.2e6,\n                 txgain=50,\n\
-      \                 baseband=200000,                                     \n  \
-      \               url=\"http://127.0.0.1:8000\"):\n        gr.basic_block.__init__(self,\n\
-      \            name='MaiaTx',\n            in_sig=[],\n            out_sig=[]\n\
-      \        )\n\n        self.url = url\n        self.frequency = frequency\n\n\
-      \        self.samplerate = samplerate\n        self.baseband = baseband\n  \
-      \      self.decim = int(samplerate/self.baseband)\n        self.client = None\n\
-      \        self._running = False\n        self.txgain = txgain\n\n\n        print(\"\
-      Init: Frequency setting\", self.frequency, flush=True)\n        self.start()\n\
-      \n    # --- Runtime setters (callbacks GRC will call) ---\n    def set_frequency(self,\
-      \ frequency):\n        self.frequency = frequency\n        if self.client:\n\
-      \            try:\n                self.client.set_tx_lo_frequency(frequency)\n\
-      \            except MaiaAPIError as e:\n                print(\"Failed to set\
-      \ frequency:\", e, flush=True)\n        print(\"Frequency updated:\", frequency,\
-      \ flush=True)\n\n    def set_frequency_nco(self, frequency_nco):\n        self.frequency_nco\
-      \ = frequency_nco\n        if self.client:\n            try:\n             \
-      \   self.client.set_ddc_frequency(frequency_nco)\n            except MaiaAPIError\
-      \ as e:\n                print(\"Failed to set NCO:\", e, flush=True)\n    \
-      \    print(\"Frequency NCO updated:\", frequency_nco, flush=True)\n\n    def\
-      \ set_samplerate(self, samplerate):\n        self.samplerate = samplerate\n\
-      \        self.client.set_sampling_frequency(self.samplerate)\n        self.client.set_tx_rf_bandwidth(self.samplerate)\n\
-      \        print(\"Samplerate updated:\", samplerate, flush=True)\n    \n    def\
-      \ set_txgain(self, txgain):\n           self.txgain = txgain\n\n           self.client.set_tx_gain(self.txgain)\n\
-      \           print(\"TXGain updated:\", self.txgain, flush=True) \n\n    \n \
-      \   # --- Lifecycle hooks ---\n    def start(self):\n        print (\"Starting\"\
-      , self.url)\n        \n        \n        # Force Interpolator x8\n        subprocess.run([\"\
-      busybox\", \"devmem\", \"0x790240BC\", \"32\", \"0x1\"])\n        self._running\
-      \ = True\n        self.thread = threading.Thread(target=self.run, daemon=True)\n\
-      \        self.thread.start()\n        return super().start()\n\n    def run(self):\n\
-      \        while self._running:\n            time.sleep(1)\n\n    def stop(self):\n\
-      \        self._running = False\n        if hasattr(self, \"thread\") and self.thread.is_alive():\n\
-      \            self.thread.join()\n        return super().stop()\n\n"
+      \                 txgain=50,\n                 txon=0,\n                 rfbandwidth=200e3,\n\
+      \                 ):\n        gr.basic_block.__init__(self,\n            name='MaiaTx',\n\
+      \            in_sig=[],\n            out_sig=[]\n        )\n\n        \n   \
+      \     self.frequency = frequency\n\n        self.client = None\n        self._running\
+      \ = False\n        self.txgain = txgain\n        self.txon = txon\n        self.rfbandwidth=rfbandwidth\n\
+      \        print(\"Init: Frequency setting\", self.frequency, flush=True)\n  \
+      \      self.sdr = None\n        self.init()\n        self.start()\n\n    # ---\
+      \ Runtime setters (callbacks GRC will call) ---\n    def set_frequency(self,\
+      \ frequency):\n        self.frequency = frequency\n        self.sdr.tx_lo =\
+      \ self.frequency \n        print(\"Frequency updated:\", frequency, flush=True)\n\
+      \n   \n    def set_txgain(self, txgain):\n           self.txgain = txgain\n\
+      \           hardwaregain=str(-float(89-self.txgain)) \n           tx_chan =\
+      \ self.phy.find_channel(\"voltage0\", True) \n           tx_chan.attrs[\"hardwaregain\"\
+      ].value=hardwaregain\n           print(\"TXGain updated:\", hardwaregain, flush=True)\
+      \ \n    \n    def set_txon(self, txon):\n           self.txon = txon\n     \
+      \      tx_chan = self.phy.find_channel(\"altvoltage1\", True) \n           try:\n\
+      \               if txon is True:\n                    tx_chan.attrs[\"powerdown\"\
+      ].value=\"0\"\n               else:\n                    tx_chan.attrs[\"powerdown\"\
+      ].value=\"1\"\n           except Exception as e:\n             print(\"Warning:\
+      \ TXON:\", e, flush=True)\n     \n           print(\"Txon updated:\", self.txon,\
+      \ flush=True) \n\n    def set_rfbandwidth(self, txon):\n           \n      \
+      \     self.sdr.tx_rf_bandwidth = self.rfbandwidth\n\n    # --- Lifecycle hooks\
+      \ ---\n    def init(self):\n        \n        print(\"Starting TX:\") \n   \
+      \     try:\n            self.sdr=adi.ad9361(uri=\"local:\")\n            self.ctx=\
+      \ self.sdr.ctx\n            self.phy=self.ctx.find_device(\"ad9361-phy\")\n\
+      \            tx_chan = self.phy.find_channel(\"altvoltage1\", True) \n     \
+      \       \n            # Force Interpolator x32\n            subprocess.run([\"\
+      busybox\", \"devmem\", \"0x790240BC\", \"32\", \"0x1\"])\n        except Exception\
+      \ as e:\n            print(\"Warning: SDR init failed:\", e, flush=True)\n \
+      \   \n    def start(self):\n        self._running = True\n        self.thread\
+      \ = threading.Thread(target=self.run, daemon=True)\n        self.thread.start()\n\
+      \        return super().start()\n\n    def run(self):\n        while self._running:\n\
+      \            time.sleep(1)\n            self.set_txon(self.txon)\n         \
+      \   self.set_txgain(self.txgain)\n            #interp=subprocess.run([\"busybox\"\
+      , \"devmem\", \"0x790240BC\"])\n            #print(\"Interp \",interp)     \
+      \   \n\n    def stop(self):\n        self._running = False\n        if hasattr(self,\
+      \ \"thread\") and self.thread.is_alive():\n            self.thread.join()\n\
+      \        return super().stop()\n\n    \n"
     affinity: ''
     alias: MaiaTX
-    baseband: baseband
     comment: ''
     frequency: Fsdr
     maxoutbuf: '0'
     minoutbuf: '0'
-    samplerate: samp_rate
+    rfbandwidth: 200e3
     txgain: G1
-    url: maia_url
+    txon: TX_ON
   states:
-    _io_cache: ('MaiaTx', 'blk', [('frequency', '1000000000.0'), ('samplerate', '1200000.0'),
-      ('txgain', '50'), ('baseband', '200000'), ('url', "'http://127.0.0.1:8000'")],
-      [], [], 'Maia Source control block (no stream I/O)', ['baseband', 'frequency',
-      'samplerate', 'txgain', 'url'])
+    _io_cache: ('MaiaTx', 'blk', [('frequency', '1000000000.0'), ('txgain', '50'),
+      ('txon', '0'), ('rfbandwidth', '200000.0')], [], [], 'Maia Destination control
+      block (no stream I/O)', ['frequency', 'rfbandwidth', 'txgain', 'txon'])
     bus_sink: false
     bus_source: false
     bus_structure: null
@@ -482,48 +467,34 @@ blocks:
     coordinate: [88, 516.0]
     rotation: 0
     state: enabled
-- name: iio_attr_sink_0
-  id: iio_attr_sink
+- name: iio_fmcomms2_sink_0
+  id: iio_fmcomms2_sink
   parameters:
     affinity: ''
     alias: ''
-    attr_type: '0'
-    channel: voltage0
-    comment: ''
-    device: ad9361-phy
-    output: 'True'
-    uri: 'local:'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [1432, 140.0]
-    rotation: 0
-    state: true
-- name: iio_pluto_sink_0
-  id: iio_pluto_sink
-  parameters:
-    affinity: ''
-    alias: ''
-    attenuation1: '0'
-    bandwidth: int(samp_rate)
-    buffer_size: '32000'
+    attenuation1: '10.0'
+    attenuation2: '10.0'
+    bandwidth: '200000'
+    buffer_size: '32768'
     comment: ''
     cyclic: 'False'
     filter: ''
-    filter_source: '''Auto'''
+    filter_source: '''Off'''
     fpass: '0'
     frequency: Fsdr
     fstop: '0'
     len_tag_key: ''
+    rf_port_select: '''A'''
     samplerate: int(samp_rate)
+    tx1_en: 'True'
+    tx2_en: 'False'
     type: fc32
     uri: 'local:'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [1376, 340.0]
+    coordinate: [1344, 180.0]
     rotation: 0
     state: true
 - name: interpol
@@ -680,10 +651,8 @@ connections:
 - [blocks_selector_0, '0', band_pass_filter_0_0, '0']
 - [blocks_selector_0, '1', hilbert_fc_0, '0']
 - [blocks_selector_0, '2', blocks_float_to_complex_0_0, '0']
-- [blocks_selector_1, '0', iio_pluto_sink_0, '0']
+- [blocks_selector_1, '0', iio_fmcomms2_sink_0, '0']
 - [blocks_short_to_float_0, '0', blocks_selector_0, '0']
-- [blocks_var_to_msg_0, msgout, blocks_message_debug_0, print]
-- [blocks_var_to_msg_0, msgout, iio_attr_sink_0, attr]
 - [hilbert_fc_0, '0', blocks_complex_to_float_0, '0']
 - [network_udp_source_0, '0', blocks_short_to_float_0, '0']
 - [rational_resampler_xxx_1, '0', blocks_selector_1, '1']

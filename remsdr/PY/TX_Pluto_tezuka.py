@@ -49,6 +49,7 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         self.samp_rate = samp_rate = SampRate
         self.maia_url = maia_url = "http://127.0.0.1:8000"
+        self.TX_ON = TX_ON = 0
         self.LNUC = LNUC = 0
         self.G2 = G2 = 0
         self.G1 = G1 = 70
@@ -78,27 +79,27 @@ class TX_Pluto_tezuka(gr.top_block):
                 taps=[],
                 fractional_bw=0)
         self.network_udp_source_0 = network.udp_source(gr.sizeof_short, 1, 19005, 0, 128, False, False, False)
-        self.iio_pluto_sink_0 = iio.fmcomms2_sink_fc32('local:' if 'local:' else iio.get_pluto_uri(), [True, True], 32000, False)
-        self.iio_pluto_sink_0.set_len_tag_key('')
-        self.iio_pluto_sink_0.set_bandwidth(int(samp_rate))
-        self.iio_pluto_sink_0.set_frequency(Fsdr)
-        self.iio_pluto_sink_0.set_samplerate(int(samp_rate))
-        self.iio_pluto_sink_0.set_attenuation(0, 0)
-        self.iio_pluto_sink_0.set_filter_params('Auto', '', 0, 0)
-        self.iio_attr_sink_0 = iio.attr_sink('local:', 'ad9361-phy', 'voltage0', 0, True)
+        self.iio_fmcomms2_sink_0 = iio.fmcomms2_sink_fc32('local:', [True, True, False, False], 32768, False)
+        self.iio_fmcomms2_sink_0.set_len_tag_key('')
+        self.iio_fmcomms2_sink_0.set_bandwidth(200000)
+        self.iio_fmcomms2_sink_0.set_frequency(Fsdr)
+        self.iio_fmcomms2_sink_0.set_samplerate(int(samp_rate))
+        if True:
+            self.iio_fmcomms2_sink_0.set_attenuation(0, 10.0)
+        if False:
+            self.iio_fmcomms2_sink_0.set_attenuation(1, 10.0)
+        self.iio_fmcomms2_sink_0.set_filter_params('Off', '', 0, 0)
         self.hilbert_fc_0 = filter.hilbert_fc(64, window.WIN_HAMMING, 6.76)
         self.hilbert_fc_0.set_min_output_buffer(10)
         self.hilbert_fc_0.set_max_output_buffer(10)
-        self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, samplerate=samp_rate, txgain=G1, baseband=baseband, url=maia_url)
+        self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, txgain=G1, txon=TX_ON, rfbandwidth=200e3)
         self.epy_block_1.set_block_alias("MaiaTX")
-        self.blocks_var_to_msg_0 = blocks.var_to_msg_pair('hardwaregain')
         self.blocks_short_to_float_0 = blocks.short_to_float(1, 32767)
         self.blocks_selector_1 = blocks.selector(gr.sizeof_gr_complex*1,abs(LNUC),0)
         self.blocks_selector_1.set_enabled(True)
         self.blocks_selector_0 = blocks.selector(gr.sizeof_float*1,0,abs(LNUC))
         self.blocks_selector_0.set_enabled(True)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_ff(LNUC)
-        self.blocks_message_debug_0 = blocks.message_debug(True)
         self.blocks_float_to_complex_0_0 = blocks.float_to_complex(1)
         self.blocks_float_to_complex_0 = blocks.float_to_complex(1)
         self.blocks_complex_to_float_0 = blocks.complex_to_float(1)
@@ -135,8 +136,6 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         # Connections
         ##################################################
-        self.msg_connect((self.blocks_var_to_msg_0, 'msgout'), (self.blocks_message_debug_0, 'print'))
-        self.msg_connect((self.blocks_var_to_msg_0, 'msgout'), (self.iio_attr_sink_0, 'attr'))
         self.connect((self.analog_const_source_x_1, 0), (self.blocks_float_to_complex_0_0, 1))
         self.connect((self.analog_nbfm_tx_0, 0), (self.rational_resampler_xxx_1_0, 0))
         self.connect((self.band_pass_filter_0, 0), (self.rational_resampler_xxx_1, 0))
@@ -149,7 +148,7 @@ class TX_Pluto_tezuka(gr.top_block):
         self.connect((self.blocks_selector_0, 0), (self.band_pass_filter_0_0, 0))
         self.connect((self.blocks_selector_0, 2), (self.blocks_float_to_complex_0_0, 0))
         self.connect((self.blocks_selector_0, 1), (self.hilbert_fc_0, 0))
-        self.connect((self.blocks_selector_1, 0), (self.iio_pluto_sink_0, 0))
+        self.connect((self.blocks_selector_1, 0), (self.iio_fmcomms2_sink_0, 0))
         self.connect((self.blocks_short_to_float_0, 0), (self.blocks_selector_0, 0))
         self.connect((self.hilbert_fc_0, 0), (self.blocks_complex_to_float_0, 0))
         self.connect((self.network_udp_source_0, 0), (self.blocks_short_to_float_0, 0))
@@ -172,7 +171,6 @@ class TX_Pluto_tezuka(gr.top_block):
         self.baseband = baseband
         self.band_pass_filter_0.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0.set_taps(firdes.band_pass(1, self.baseband, 300, 3500, 1200, window.WIN_HAMMING, 6.76))
-        self.epy_block_1.baseband = self.baseband
 
     def get_device(self):
         return self.device
@@ -191,16 +189,20 @@ class TX_Pluto_tezuka(gr.top_block):
 
     def set_samp_rate(self, samp_rate):
         self.samp_rate = samp_rate
-        self.epy_block_1.samplerate = self.samp_rate
-        self.iio_pluto_sink_0.set_bandwidth(int(self.samp_rate))
-        self.iio_pluto_sink_0.set_samplerate(int(self.samp_rate))
+        self.iio_fmcomms2_sink_0.set_samplerate(int(self.samp_rate))
 
     def get_maia_url(self):
         return self.maia_url
 
     def set_maia_url(self, maia_url):
         self.maia_url = maia_url
-        self.epy_block_1.url = self.maia_url
+
+    def get_TX_ON(self):
+        return self.TX_ON
+
+    def set_TX_ON(self, TX_ON):
+        self.TX_ON = TX_ON
+        self.epy_block_1.txon = self.TX_ON
 
     def get_LNUC(self):
         return self.LNUC
@@ -223,7 +225,6 @@ class TX_Pluto_tezuka(gr.top_block):
 
     def set_G1(self, G1):
         self.G1 = G1
-        self.blocks_var_to_msg_0.variable_changed(str(-float(89-self.G1)))
         self.epy_block_1.txgain = self.G1
 
     def get_Fsdr(self):
@@ -232,7 +233,7 @@ class TX_Pluto_tezuka(gr.top_block):
     def set_Fsdr(self, Fsdr):
         self.Fsdr = Fsdr
         self.epy_block_1.frequency = self.Fsdr
-        self.iio_pluto_sink_0.set_frequency(self.Fsdr)
+        self.iio_fmcomms2_sink_0.set_frequency(self.Fsdr)
 
 
 
