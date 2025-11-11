@@ -301,6 +301,7 @@ class RX_Pluto_Tezuka(gr.top_block):
         self.G2 = G2
         self.epy_block_1.rxgain = self.G2
         self.epy_block_1.set_rxgain (self.G2)
+
     def get_G1(self):
         return self.G1
 
@@ -313,6 +314,7 @@ class RX_Pluto_Tezuka(gr.top_block):
     def set_Fsdr(self, Fsdr):
         self.Fsdr = Fsdr
         self.epy_block_1.frequency = self.Fsdr
+        self.epy_block_1.set_frequency (self.Fsdr)
 
     def get_Ffine(self):
         return self.Ffine
@@ -320,6 +322,7 @@ class RX_Pluto_Tezuka(gr.top_block):
     def set_Ffine(self, Ffine):
         self.Ffine = Ffine
         self.epy_block_1.frequency_nco = self.Ffine
+        self.epy_block_1.set_frequency_nco(self.Ffine)
 
 
 

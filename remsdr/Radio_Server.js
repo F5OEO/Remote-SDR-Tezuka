@@ -397,6 +397,7 @@ function ServersReceived(socket) {
         if (TX_Old.Fsdr != TX.Fsdr || TX_Old.LNUC != TX.LNUC  || TX_Old.G1 != TX.G1 || TX_Old.G2 != TX.G2 || TX_Old.CTCSS != TX.CTCSS)  { //To avoid a click every second. Each time the frequency is refreshed
             TXclientRpc.methodCall('set_Fsdr', [TX.Fsdr], function () {});
             TXclientRpc.methodCall('set_LNUC', [TX.LNUC], function () {});
+            
             if (Users.lastTX_Audio + 100 > Users.lastTX_M) { // TX On we set normal gains
                 TXclientRpc.methodCall('set_G1', [TX.G1], function () {});
                 TXclientRpc.methodCall('set_G2', [TX.G2], function () {});
@@ -418,7 +419,9 @@ function ServersReceived(socket) {
         if (Users.lastTX_Audio < T - 100) { //TX just switch on,we set normal gains
             TXclientRpc.methodCall('set_G1', [TX.G1], function () {});
             TXclientRpc.methodCall('set_G2', [TX.G2], function () {});
+           
             Users.TX_On = true;
+            TXclientRpc.methodCall('set_TX_ON', [Users.TX_On], function () {});    
         }
         Users.lastTX_Audio = T;
         clientTX.send(data, 19005); //Array of 256 bytes via UDP
@@ -470,7 +473,9 @@ const Users = {
         if (Users.lastTX_Audio < T) { //TX is Off no recent Audio Data. Gains reduced to avoid any spurious transmission
             TXclientRpc.methodCall('set_G1', [0], function () {});
             TXclientRpc.methodCall('set_G2', [0], function () {});
+            
             Users.TX_On = false;
+            TXclientRpc.methodCall('set_TX_ON', [Users.TX_On], function () {});    
         }
         //RX management
         var stillApilot = false;

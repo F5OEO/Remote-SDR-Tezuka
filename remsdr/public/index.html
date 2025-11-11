@@ -4,9 +4,9 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<meta name = "author" content = "André Buhart F1ATB">
+		<meta name = "author" content = "F5OEO">
 		
-        <title>Remote SDR</title>
+        <title>Remote SDR for Tezuka</title>
 		<script  src="JS/jquery-3.4.1.min.js" ></script>
 		<script  src="JS/version.js" ></script>
 		<script src="/socket.io/socket.io.js"></script>
@@ -36,21 +36,10 @@
 					$("body").css("font-size",f);
 				}
 				$( document ).ready(function() {
-				    var V = "Remote SDR V"+Version+"<br><a href='https://f1atb.fr' target='_blank'>F1ATB</a> ";
+				    var V = "Remote SDR Tezuka V"+Version+"<br><a href='https://github.com/F5OEO/Remote-SDR-Tezuka' target='_blank'>F5OEO</a> ";
 					$("#version").html(V);
 					window_resize();
-					//Local Storage
-					var the_date = new Date();
-					var date_current = the_date.getMonth(); 
-					if (localStorage.getItem("date_Last_Check")!=null){ // We have an old storage 
-						date_Last_Check =  JSON.parse(localStorage.getItem("date_Last_Check"));					
-					}
-					if (date_Last_Check != date_current  ) { // Check once every Month 
-						
-						var loader='<iframe src="https://f1atb.fr/mes_pages/VersionRemSdr/check_version.php?version=' + Version + '" frameBorder="0" style="width:100%;"></iframe>'
-						$("#popup_new_version").html(loader);
-					}
-					localStorage.setItem("date_Last_Check", JSON.stringify(date_current));
+					
 				});
 			   function RXsocketConnected() {
 					
@@ -61,6 +50,6 @@
 			
 			
 		</script>
-		<script  type="module" src="/3D/index_m.js" ></script>
+		
     </body>
 </html>
