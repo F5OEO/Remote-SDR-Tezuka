@@ -425,10 +425,11 @@ blocks:
       \ = threading.Thread(target=self.run, daemon=True)\n        self.thread.start()\n\
       \        return super().start()\n\n    def run(self):\n        while self._running:\n\
       \            time.sleep(1)\n            self.set_txon(self.txon)\n         \
-      \   self.set_txgain(self.txgain)\n            #interp=subprocess.run([\"busybox\"\
-      , \"devmem\", \"0x790240BC\"])\n            #print(\"Interp \",interp)     \
-      \   \n\n    def stop(self):\n        self._running = False\n        if hasattr(self,\
-      \ \"thread\") and self.thread.is_alive():\n            self.thread.join()\n\
+      \   self.set_txgain(self.txgain)\n            subprocess.run([\"busybox\", \"\
+      devmem\", \"0x790240BC\", \"32\", \"0x1\"])\n            #interp=subprocess.run([\"\
+      busybox\", \"devmem\", \"0x790240BC\"])\n            #print(\"Interp \",interp)\
+      \        \n\n    def stop(self):\n        self._running = False\n        if\
+      \ hasattr(self, \"thread\") and self.thread.is_alive():\n            self.thread.join()\n\
       \        return super().stop()\n\n    \n"
     affinity: ''
     alias: MaiaTX

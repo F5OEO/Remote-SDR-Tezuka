@@ -93,6 +93,7 @@ class blk(gr.basic_block):
             time.sleep(1)
             self.set_txon(self.txon)
             self.set_txgain(self.txgain)
+            subprocess.run(["busybox", "devmem", "0x790240BC", "32", "0x1"])
             #interp=subprocess.run(["busybox", "devmem", "0x790240BC"])
             #print("Interp ",interp)        
 
