@@ -59,7 +59,7 @@ RXsdr.push({
     G1: ["AGC (off/on)", 0, 1, 1], //name,min,max,step
     G2: ["Gain (dB)", 0, 73, 1],
     G3: ["", 0, 40, 1],
-    Fmin: 70000000,
+    Fmin: 47000000,
     Fmax: 6000000000
 });
 //RTL SDR

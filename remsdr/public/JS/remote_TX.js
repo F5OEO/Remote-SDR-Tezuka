@@ -28,7 +28,7 @@ TXsdr.push({
     name: "pluto",
     G1: ["Gain (dB)", 0, 89, 1], //name,min,max,step
     G2: ["", 0, 0, 1],
-    Fmin: 70000000,
+    Fmin: 47000000,
     Fmax: 6000000000
 });
 //Variables Transmitter
