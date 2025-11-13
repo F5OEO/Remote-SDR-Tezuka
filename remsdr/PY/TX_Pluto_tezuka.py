@@ -50,11 +50,11 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         self.LNUC = LNUC = -1
         self.sideband = sideband = 1 if LNUC == -1 else 0
-        self.low_cutoff = low_cutoff = 300
+        self.low_cutoff = low_cutoff = 100
         self.high_cutoff = high_cutoff = 3500
         self.samp_rate = samp_rate = SampRate
         self.maia_url = maia_url = "http://127.0.0.1:8000"
-        self.band_pass_filter_taps = band_pass_filter_taps = firdes.complex_band_pass(1.0, baseband, low_cutoff - ((high_cutoff + low_cutoff) * sideband), high_cutoff - ((high_cutoff + low_cutoff)  * sideband), 200, window.WIN_HAMMING, 6.76)
+        self.band_pass_filter_taps = band_pass_filter_taps = firdes.complex_band_pass(1.0, baseband, low_cutoff - ((high_cutoff + low_cutoff) * sideband), high_cutoff - ((high_cutoff + low_cutoff)  * sideband), 100, window.WIN_HAMMING, 6.76)
         self.TX_ON = TX_ON = 0
         self.G2 = G2 = 0
         self.G1 = G1 = 70
@@ -169,7 +169,7 @@ class TX_Pluto_tezuka(gr.top_block):
 
     def set_baseband(self, baseband):
         self.baseband = baseband
-        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 200, window.WIN_HAMMING, 6.76))
+        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 100, window.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0.set_taps(firdes.band_pass(1, self.baseband, 300, 3500, 1200, window.WIN_HAMMING, 6.76))
 
     def get_device(self):
@@ -198,21 +198,21 @@ class TX_Pluto_tezuka(gr.top_block):
 
     def set_sideband(self, sideband):
         self.sideband = sideband
-        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 200, window.WIN_HAMMING, 6.76))
+        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 100, window.WIN_HAMMING, 6.76))
 
     def get_low_cutoff(self):
         return self.low_cutoff
 
     def set_low_cutoff(self, low_cutoff):
         self.low_cutoff = low_cutoff
-        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 200, window.WIN_HAMMING, 6.76))
+        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 100, window.WIN_HAMMING, 6.76))
 
     def get_high_cutoff(self):
         return self.high_cutoff
 
     def set_high_cutoff(self, high_cutoff):
         self.high_cutoff = high_cutoff
-        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 200, window.WIN_HAMMING, 6.76))
+        self.set_band_pass_filter_taps(firdes.complex_band_pass(1.0, self.baseband, self.low_cutoff - ((self.high_cutoff + self.low_cutoff) * self.sideband), self.high_cutoff - ((self.high_cutoff + self.low_cutoff)  * self.sideband), 100, window.WIN_HAMMING, 6.76))
 
     def get_samp_rate(self):
         return self.samp_rate

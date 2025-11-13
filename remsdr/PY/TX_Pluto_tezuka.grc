@@ -103,7 +103,7 @@ blocks:
     low_cutoff_freq: low_cutoff - ((high_cutoff + low_cutoff) * sideband)
     samp_rate: baseband
     type: complex_band_pass
-    width: '200'
+    width: '100'
     win: window.WIN_HAMMING
   states:
     bus_sink: false
@@ -128,7 +128,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: '300'
+    value: '100'
   states:
     bus_sink: false
     bus_source: false
