@@ -27,6 +27,7 @@ from gnuradio import network
 from xmlrpc.server import SimpleXMLRPCServer
 import threading
 import TX_Pluto_tezuka_epy_block_1 as epy_block_1  # embedded python block
+import cessb
 
 
 
@@ -94,6 +95,8 @@ class TX_Pluto_tezuka(gr.top_block):
         self.hilbert_fc_0.set_max_output_buffer(10)
         self.epy_block_1 = epy_block_1.blk(frequency=Fsdr, txgain=G1, txon=TX_ON, rfbandwidth=200e3)
         self.epy_block_1.set_block_alias("MaiaTX")
+        self.cessb_stretcher_cc_0 = cessb.stretcher_cc()
+        self.cessb_clipper_cc_0 = cessb.clipper_cc(0.353553390593)
         self.blocks_short_to_float_0 = blocks.short_to_float(1, 32767)
         self.blocks_selector_1 = blocks.selector(gr.sizeof_gr_complex*1,abs(LNUC),0)
         self.blocks_selector_1.set_enabled(True)
@@ -103,6 +106,26 @@ class TX_Pluto_tezuka(gr.top_block):
         self.blocks_float_to_complex_0_0 = blocks.float_to_complex(1)
         self.blocks_float_to_complex_0 = blocks.float_to_complex(1)
         self.blocks_complex_to_float_0 = blocks.complex_to_float(1)
+        self.band_pass_filter_0_1_0 = filter.fir_filter_ccc(
+            1,
+            firdes.complex_band_pass(
+                1,
+                baseband,
+                -1300+LNUC*1500,
+                1300+LNUC*1500,
+                200,
+                window.WIN_HAMMING,
+                6.76))
+        self.band_pass_filter_0_1 = filter.fir_filter_ccc(
+            1,
+            firdes.complex_band_pass(
+                1,
+                baseband,
+                -1300+LNUC*1500,
+                1300+LNUC*1500,
+                200,
+                window.WIN_HAMMING,
+                6.76))
         self.band_pass_filter_0_0 = filter.fir_filter_fff(
             1,
             firdes.band_pass(
@@ -138,8 +161,10 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         self.connect((self.analog_const_source_x_1, 0), (self.blocks_float_to_complex_0_0, 1))
         self.connect((self.analog_nbfm_tx_0, 0), (self.rational_resampler_xxx_1_0, 0))
-        self.connect((self.band_pass_filter_0, 0), (self.rational_resampler_xxx_1, 0))
+        self.connect((self.band_pass_filter_0, 0), (self.cessb_clipper_cc_0, 0))
         self.connect((self.band_pass_filter_0_0, 0), (self.analog_nbfm_tx_0, 0))
+        self.connect((self.band_pass_filter_0_1, 0), (self.cessb_stretcher_cc_0, 0))
+        self.connect((self.band_pass_filter_0_1_0, 0), (self.rational_resampler_xxx_1, 0))
         self.connect((self.blocks_complex_to_float_0, 0), (self.blocks_float_to_complex_0, 0))
         self.connect((self.blocks_complex_to_float_0, 1), (self.blocks_multiply_const_vxx_0, 0))
         self.connect((self.blocks_float_to_complex_0, 0), (self.band_pass_filter_0, 0))
@@ -150,6 +175,8 @@ class TX_Pluto_tezuka(gr.top_block):
         self.connect((self.blocks_selector_0, 1), (self.hilbert_fc_0, 0))
         self.connect((self.blocks_selector_1, 0), (self.iio_fmcomms2_sink_0, 0))
         self.connect((self.blocks_short_to_float_0, 0), (self.blocks_selector_0, 0))
+        self.connect((self.cessb_clipper_cc_0, 0), (self.band_pass_filter_0_1, 0))
+        self.connect((self.cessb_stretcher_cc_0, 0), (self.band_pass_filter_0_1_0, 0))
         self.connect((self.hilbert_fc_0, 0), (self.blocks_complex_to_float_0, 0))
         self.connect((self.network_udp_source_0, 0), (self.blocks_short_to_float_0, 0))
         self.connect((self.rational_resampler_xxx_1, 0), (self.blocks_selector_1, 1))
@@ -171,6 +198,8 @@ class TX_Pluto_tezuka(gr.top_block):
         self.baseband = baseband
         self.band_pass_filter_0.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
         self.band_pass_filter_0_0.set_taps(firdes.band_pass(1, self.baseband, 300, 3500, 1200, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0_1.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0_1_0.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
 
     def get_device(self):
         return self.device
@@ -210,6 +239,8 @@ class TX_Pluto_tezuka(gr.top_block):
     def set_LNUC(self, LNUC):
         self.LNUC = LNUC
         self.band_pass_filter_0.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0_1.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
+        self.band_pass_filter_0_1_0.set_taps(firdes.complex_band_pass(1, self.baseband, -1300+self.LNUC*1500, 1300+self.LNUC*1500, 200, window.WIN_HAMMING, 6.76))
         self.blocks_multiply_const_vxx_0.set_k(self.LNUC)
         self.blocks_selector_0.set_output_index(abs(self.LNUC))
         self.blocks_selector_1.set_input_index(abs(self.LNUC))
