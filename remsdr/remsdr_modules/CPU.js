@@ -5,7 +5,7 @@ var CPUshort = "";
 var GPIO_Fan = "73"; //Pin 7 on Orange Pi Zero 2(when CPU overheats) or Pin 12 Orange Pi One Plus
 var GPIO_Oscil = "227"; // pin 26 in Orange PI One PLUS H6
 const cp = require('child_process');
-const Gpio = require('onoff').Gpio; //to interact with the GPIO
+//const Gpio = require('onoff').Gpio; //to interact with the GPIO
 const fs = require('fs');
 var info_cpu = cp.execSync("lscpu").toString();
 if (info_cpu.indexOf("armv7l") > 0) {
@@ -67,16 +67,7 @@ function Oscil_Clear() {
 // GPIO setActive
 // **************
 function SetGPIOs(s) {
-    var gpio = s.split("*");
-    for (var i = 0; i < gpio.length; i++) {
-        var G = gpio[i].split(",");
-        G[0] = parseInt(G[0]).toString();
-        G[1] = parseInt(G[1]) % 2;
-        try {
-            var Pin = new Gpio(G[0], 'out');
-            Pin.write(G[1]);
-        } catch (e) {}
-    }
+    
 
 }
 
