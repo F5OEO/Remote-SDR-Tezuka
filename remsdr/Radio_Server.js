@@ -112,7 +112,7 @@ app.get('/RXspectra', cors(), function (req, res) {
     res.writeHead(200, {
         'Content-Type': 'multipart/octet-stream',
     });
-    const client = net.createConnection({
+    const client = net.createConnection({ host: '127.0.0.1',
         port: 8002
     }, () => {
         // 'connect' listener.
@@ -127,7 +127,7 @@ app.get('/RXaudio', cors(), function (req, res) {
     res.writeHead(200, {
         'Content-Type': 'multipart/octet-stream',
     });
-    const client = net.createConnection({
+    const client = net.createConnection({ host: '127.0.0.1',
         port: 8001
     }, () => {
         // 'connect' listener.
@@ -147,12 +147,12 @@ ioS.on("connection", (socket) => {
 //
 //Clients xmlRpc
 var RXclientRpc = xmlrpc.createClient({
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 19003,
     path: '/'
 })
 var TXclientRpc = xmlrpc.createClient({
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 19004,
     path: '/'
 })
