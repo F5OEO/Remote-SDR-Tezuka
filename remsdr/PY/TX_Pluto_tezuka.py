@@ -48,10 +48,10 @@ class TX_Pluto_tezuka(gr.top_block):
         ##################################################
         # Variables
         ##################################################
-        self.LNUC = LNUC = -1
+        self.LNUC = LNUC = 1
         self.sideband = sideband = 1 if LNUC == -1 else 0
         self.low_cutoff = low_cutoff = 100
-        self.high_cutoff = high_cutoff = 3500
+        self.high_cutoff = high_cutoff = 2800
         self.samp_rate = samp_rate = SampRate
         self.maia_url = maia_url = "http://127.0.0.1:8000"
         self.band_pass_filter_taps = band_pass_filter_taps = firdes.complex_band_pass(1.0, baseband, low_cutoff - ((high_cutoff + low_cutoff) * sideband), high_cutoff - ((high_cutoff + low_cutoff)  * sideband), 100, window.WIN_HAMMING, 6.76)
