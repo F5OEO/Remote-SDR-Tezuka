@@ -90,7 +90,7 @@ class blk(gr.basic_block):
 
     def run(self):
         while self._running:
-            time.sleep(1)
+            time.sleep(0.2)
             self.set_txon(self.txon)
             self.set_txgain(self.txgain)
             subprocess.run(["busybox", "devmem", "0x790240BC", "32", "0x1"])
