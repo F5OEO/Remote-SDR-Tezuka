@@ -124,6 +124,7 @@ function killer() {
     if (rx_GR_script != null)
     {
         rx_GR_script.kill();
+        cp.spawn("busybox", ["busybox", "devmem", "0x790200BC", "32", "0x0"], {stdio: 'ignore'});
         console.log("Kill RX");
     }
     rx_GR_script = null;
@@ -131,6 +132,7 @@ function killer() {
     if (tx_GR_script != null)
     {
         tx_GR_script.kill();
+        cp.spawn("busybox", ["busybox", "devmem", "0x790240BC", "32", "0x0"], {stdio: 'ignore'});
         console.log("Kill TX")
     }
 	if (tx_SA818_script != null)
